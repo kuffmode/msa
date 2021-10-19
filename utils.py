@@ -9,7 +9,7 @@ from typeguard import typechecked
 
 
 @typechecked
-def generatorize(*, to_iterate: Iterable[Any]) -> Generator[Any, None, None]:
+def generatorize(to_iterate: Iterable[Any]) -> Generator[Any, None, None]:
     """
     Not sure how useful is this but this function makes a generator out of an iterable.
     Probably good for very large combinaton_spaces.

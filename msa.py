@@ -11,7 +11,7 @@ import utils as ut
 @typechecked
 def make_permutation_space(*,
                            elements: list,
-                           n_permutations: int) -> list[tuple]:
+                           n_permutations: int) -> list:
     """
     Generates a list of tuples containing n_permutations of the given elements.
     This will be used later in make_combination_space so you can have the same permutation and combination spaces for
@@ -43,7 +43,7 @@ def make_permutation_space(*,
     Returns (list[tuple]):
         Permutation space as a list of lists with shape (n_permutations, len(elements))
     """
-    permutation_space = [] # TODO: How not to make an empty placeholder first!
+    permutation_space = []  # TODO: How not to make an empty placeholder first!
     for sample in range(n_permutations):
         permutation_space.append(tuple(random.sample(elements, len(elements))))
     return permutation_space
@@ -78,7 +78,7 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
         Combination space as an OrderedSet of frozensets.
     """
     combination_space = OrderedSet()
-    for permutation in ut.generatorize(permutation_space):
+    for permutation in ut.generatorize(to_iterate=permutation_space):
         for index, _ in enumerate(permutation):  # we really don't care about the element itself here
 
             including = frozenset(permutation[:index + 1])  # forming the coaliting with the target element
