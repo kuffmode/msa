@@ -1,5 +1,5 @@
 import random
-from typing import Callable, Optional, Dict
+from typing import Callable, Optional, Dict, Tuple
 
 import pandas as pd
 from ordered_set import OrderedSet
@@ -97,9 +97,10 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
 @typechecked
 def take_contributions(*,
                        elements: list,
+                       complement_space: OrderedSet,
                        combination_space: OrderedSet,
                        objective_function: Callable,
-                       objective_function_params: Optional[Dict] = None) -> Dict:
+                       objective_function_params: Optional[Dict] = None) -> Tuple[Dict, Dict]:
     """
     This function fills up the combination_space with the game you define (objective function). There is an important
     point to keep in mind, Shapley values are the added contributions of elements while in MSA we calculate them by
@@ -111,9 +112,23 @@ def take_contributions(*,
     A second point is that this function returns a filled combination_space, it is not filling it in-place for the
     sake of purity.
 
+    ---------------
+    Note on returns:
+        Contributions and lesion effects are virtually the same thing it's just about how you're looking at them.
+        For example, you might want to use lesion effects by conditioning elements' length and see the effect of
+        single lesions, dual, triple,... so, for contributions we have a value contributed by the intact coalition,
+        the same result can be compared to the intact system to see how big was the impact of lesioning the complements.
+        "Same same, but different, but still same!" - James Franco
+
     Args:
         elements (list):
             List of the players. Obviously, should be the same passed to make_permutation.
+
+        complement_space (OrderedSet):
+            The actual targets for lesioning. Shapley values are the added contributions of elements
+            while in MSA we calculate them by perturbation so although it's intuitive to think the combination
+            in combination space is the element that will be lesioned, it is not the case,
+            it will be everything else but the coalition, i.e., the target coalition are the only intact elements.
 
         combination_space (OrderedSet):
             The template, will be copied, filled by the objective_function, and returned.
@@ -149,13 +164,16 @@ def take_contributions(*,
     """
     elements = frozenset(elements)
     contributions = dict.fromkeys(combination_space)
+    lesion_effects = dict.fromkeys(complement_space)
     objective_function_params = objective_function_params if objective_function_params else {}
 
     for combination in ut.generatorize(to_iterate=combination_space):
         complement = tuple(elements.difference(combination))  # lesion everything but the target coalition
-        contributions[combination] = objective_function(complement, **objective_function_params)
+        result = objective_function(complement, **objective_function_params)
 
-    return contributions
+        contributions[combination] = result
+        lesion_effects[complement] = result
+    return contributions, lesion_effects
 
 
 @typechecked

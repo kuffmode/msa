@@ -1,6 +1,7 @@
 import gc
-from typing import Any, Generator, Iterable, Callable, Optional, Dict
+from typing import Any, Generator, Iterable, Callable, Optional, Dict, Tuple
 
+import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from joblib.externals.loky import get_reusable_executor
@@ -53,13 +54,22 @@ def parallelized_take_contributions(*,
                                     complement_space: OrderedSet,
                                     combination_space: OrderedSet,
                                     objective_function: Callable,
-                                    objective_function_params: Optional[Dict] = None) -> Dict:
+                                    objective_function_params: Optional[Dict] = None) -> Tuple[Dict, Dict]:
     """
     Same as the take_contribution function but parallelized over CPU cores to boost performance.
     I'd first try the single core version on a toy example to make sure everything makes sense then
     go for this because debugging parallel jobs is a disaster. Also, you don't need this if your game
     is happening on GPU. For HPC systems, I guess either dask or ray will be better options.
+    ---------------
+    Note on returns:
+        Contributions and lesion effects are virtually the same thing it's just about how you're looking at them.
+        For example, you might want to use lesion effects by conditioning elements' length and see the effect of
+        single lesions, dual, triple,... so, for contributions we have a value contributed by the intact coalition,
+        the same result can be compared to the intact system to see how big was the impact of lesioning the complements.
+        "Same same, but different, but still same!" - James Franco
+
     # TODO: compatibility with GPU and HPC.
+
     Args:
         n_cores (int):
             Number of parallel games. Default is -1, which means all cores so it can make the system
@@ -101,8 +111,9 @@ def parallelized_take_contributions(*,
         objective_function_params (Optional[Dict]):
             Kwargs for the objective_function.
 
-    Returns (Dict):
-        A dictionary of combinations:results
+    Returns (Tuple[Dict, Dict]):
+        contributions: A dictionary of coalitions:results
+        lesion_effects: A dictionary of lesions:results
     """
     objective_function_params = objective_function_params if objective_function_params else {}
 
@@ -111,11 +122,41 @@ def parallelized_take_contributions(*,
         to_iterate=complement_space)))
 
     contributions = dict(zip(combination_space, results))
-
+    lesion_effects = dict(zip(complement_space, results))
     gc.collect()
     get_reusable_executor().shutdown(wait=True)
-    return contributions
+    return contributions, lesion_effects
 
+
+@typechecked
+def distribution_of_processing(*, shapley_vector: pd.Series) -> np.float64:
+    """
+    Calculates how much the function is distributed accross the system, with values close to 0 means more localized
+    functions and values near 1 means most elements are fairly involved in producing the outcome. Remember, this value
+    will be low if many units have near zero shapley values while a few has either positive or negative contributions.
+    So, negative contributions still count as involvment in the process.
+
+    read more here:
+        Aharonov, R., Segev, L., Meilijson, I., & Ruppin, E. 2003.
+        Localization of function via lesion analysis.
+        Neural Computation.
+
+    and here:
+        Saggie-Wexler, Keren, Alon Keinan, and Eytan Ruppin. 2006.
+        Neural Processing of Counting in Evolved Spiking and McCulloch-Pitts Agents.
+        Artificial Life.
+
+    Args:
+        shapley_vector (pd.DataFrame):
+            Shapley values of the system, not the shapley table tho, shapley values themselves, i.e., averaged over
+            samples so each element has one shapley value.
+
+    returns (int):
+        d, distribution of processing!
+    """
+    normalized = shapley_vector/shapley_vector.abs().sum()  # L1 norm
+    d = 1-normalized.std()/np.sqrt(len(normalized)-1/len(normalized)**2)
+    return d
 
 @typechecked
 def sorter(shapley_table: pd.DataFrame) -> pd.DataFrame:
