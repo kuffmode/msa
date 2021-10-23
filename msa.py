@@ -95,6 +95,29 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
 
 
 @typechecked
+def make_complement_space(*,
+                          combination_space: OrderedSet,
+                          elements: list) -> OrderedSet:
+    """
+    Produces the complement space of the combination space, useful for debugging
+    and the multiprocessing function.
+    Args:
+        combination_space (OrderedSet):
+            ordered set of target combinations (coalitions).
+        elements (list):
+            list of players.
+
+    returns (OrderedSet):
+        complements to be passed for lesioning.
+    """
+    elements = frozenset(elements)
+    complement_space = OrderedSet()
+    for combination in ut.generatorize(to_iterate=combination_space):
+        complement_space.add(tuple(elements.difference(combination)))
+    return complement_space
+
+
+@typechecked
 def take_contributions(*,
                        elements: list,
                        complement_space: OrderedSet,
@@ -215,3 +238,35 @@ def make_shapley_values(*,
 
     shapley_values = pd.DataFrame([dict(zip(perms, vals)) for perms, vals in shapley_table.items()])
     return shapley_values
+
+
+@typechecked
+def interface(*,
+              n_permutations: int,
+              n_parallel_games: int = -1,
+              elements: list,
+              objective_function: Callable,
+              objective_function_params: Optional[Dict] = None
+              ) -> Tuple[pd.DataFrame, Dict, Dict]:
+    of_params = objective_function_params if objective_function_params else {}
+
+    permutation_space = make_permutation_space(elements=elements, n_permutations=n_permutations)
+    combination_space = make_combination_space(permutation_space=permutation_space)
+    complement_space = make_complement_space(combination_space=combination_space, elements=elements)
+
+    if n_parallel_games == 1:
+        contributions, lesion_effects = take_contributions(elements=elements,
+                                                           complement_space=complement_space,
+                                                           combination_space=combination_space,
+                                                           objective_function=objective_function,
+                                                           objective_function_params=of_params)
+    else:
+        contributions, lesion_effects = ut.parallelized_take_contributions(n_cores=n_parallel_games,
+                                                                           complement_space=complement_space,
+                                                                           combination_space=combination_space,
+                                                                           objective_function=objective_function,
+                                                                           objective_function_params=of_params)
+
+    shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)
+    shapley_values = ut.sorter(shapley_values)
+    return shapley_values, contributions, lesion_effects

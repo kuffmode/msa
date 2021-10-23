@@ -26,29 +26,6 @@ def generatorize(to_iterate: Iterable[Any]) -> Generator[Any, None, None]:
 
 
 @typechecked
-def make_complement_space(*,
-                          combination_space: OrderedSet,
-                          elements: list) -> OrderedSet:
-    """
-    Produces the complement space of the combination space, useful for debugging
-    and the multiprocessing function.
-    Args:
-        combination_space (OrderedSet):
-            ordered set of target combinations (coalitions).
-        elements (list):
-            list of players.
-
-    returns (OrderedSet):
-        complements to be passed for lesioning.
-    """
-    elements = frozenset(elements)
-    complement_space = OrderedSet()
-    for combination in generatorize(to_iterate=combination_space):
-        complement_space.add(tuple(elements.difference(combination)))
-    return complement_space
-
-
-@typechecked
 def parallelized_take_contributions(*,
                                     n_cores: int = -1,
                                     complement_space: OrderedSet,
