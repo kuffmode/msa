@@ -1,5 +1,6 @@
 import random
 from typing import Callable, Optional, Dict, Tuple
+import warnings
 
 import pandas as pd
 from ordered_set import OrderedSet
@@ -246,11 +247,69 @@ def interface(*,
               n_parallel_games: int = -1,
               elements: list,
               objective_function: Callable,
-              objective_function_params: Optional[Dict] = None
+              objective_function_params: Optional[Dict] = None,
+              permutation_space: Optional[list] = None,
               ) -> Tuple[pd.DataFrame, Dict, Dict]:
+    """
+    A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
+
+    Args:
+        n_permutations (int):
+            Number of permutations (samples) per element.
+
+        n_parallel_games (int):
+            Number of parallel jobs, -1 means all CPU cores and 1 means a serial process.
+            I suggest using 1 for debugging since things gets messy in parallel!
+
+        elements (list):
+            List of the players (elements). Can be strings (names), integers (indicies), and tuples.
+
+        objective_function (Callable):
+            The game (in-silico experiment). It should get the complement set and return one numeric value
+            either int or float.
+            This function is just calling it as: objective_function(complement, **objective_function_params)
+
+            An example using networkx with some tips:
+            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
+
+            def local_efficiency(complements, graph):
+                if len(complements) < 0:
+                    # the network is intact so:
+                    return nx.local_efficiency(graph)
+
+                elif len(complements) == len(graph):
+                    # the network is fully lesioned so:
+                    return 0.0
+
+                else:
+                    # lesion the system, calculate things
+                    lesioned = graph.copy()
+                    lesioned.remove_nodes_from(complements)
+                    return nx.local_efficiency(lesioned)
+
+        objective_function_params (Optional[Dict]):
+           Kwargs for the objective_function.
+
+        permutation_space (Optional[list]):
+            Already generated permutation space, in case you want to be more reproducible or something and use the same
+            lesion combinations for many metrics.
+    Returns ([pd.DataFrame, Dict, Dict]):
+        shapley_table, contributions, lesion_effects
+
+        Note that contributions and lesion_effects are the same values, addressed differently. For example:
+        If from a set of ABCD removing AC ends with some value x, you can say the contribution of BD=x and the
+        effect of removing AC=x. So the same values are addressed differently in the two returned Dicts.
+        Of course, it makes more sense to compare the lesion effects with the intact system but who am I to judge.
+    """
     of_params = objective_function_params if objective_function_params else {}
 
-    permutation_space = make_permutation_space(elements=elements, n_permutations=n_permutations)
+    if not permutation_space:
+        permutation_space = make_permutation_space(elements=elements,
+                                                   n_permutations=n_permutations)
+    else:
+        warnings.warn("A Permutation space is given so n_permutations will fall back to what's specified there.",
+                      stacklevel=2)
+
     combination_space = make_combination_space(permutation_space=permutation_space)
     complement_space = make_complement_space(combination_space=combination_space, elements=elements)
 
@@ -268,5 +327,6 @@ def interface(*,
                                                                            objective_function_params=of_params)
 
     shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)
-    shapley_values = ut.sorter(shapley_values)
     return shapley_values, contributions, lesion_effects
+
+# TODO: the option to specify random states?
