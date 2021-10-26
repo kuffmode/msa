@@ -1,6 +1,6 @@
 import gc
 from typing import Any, Generator, Iterable, Callable, Optional, Dict, Tuple
-
+from tqdm import tqdm
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -95,8 +95,8 @@ def parallelized_take_contributions(*,
     objective_function_params = objective_function_params if objective_function_params else {}
 
     results = (Parallel(n_jobs=n_cores)(delayed(objective_function)(
-        complement, **objective_function_params) for complement in generatorize(
-        to_iterate=complement_space)))
+        complement, **objective_function_params) for complement in tqdm(generatorize(
+        to_iterate=complement_space), total=len(complement_space), desc='Playing the games: ')))
 
     contributions = dict(zip(combination_space, results))
     lesion_effects = dict(zip(complement_space, results))
@@ -131,9 +131,10 @@ def distribution_of_processing(*, shapley_vector: pd.Series) -> np.float64:
     returns (int):
         d, distribution of processing!
     """
-    normalized = shapley_vector/shapley_vector.abs().sum()  # L1 norm
-    d = 1-normalized.std()/np.sqrt(len(normalized)-1/len(normalized)**2)
+    normalized = shapley_vector / shapley_vector.abs().sum()  # L1 norm
+    d = 1 - normalized.std() / np.sqrt(len(normalized) - 1 / len(normalized) ** 2)
     return d
+
 
 @typechecked
 def sorter(shapley_table: pd.DataFrame) -> pd.DataFrame:

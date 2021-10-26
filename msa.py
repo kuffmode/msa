@@ -1,7 +1,6 @@
 import random
 from typing import Callable, Optional, Dict, Tuple
 import warnings
-
 import pandas as pd
 from ordered_set import OrderedSet
 from typeguard import typechecked
@@ -80,6 +79,7 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
     """
     combination_space = OrderedSet()
     for permutation in ut.generatorize(to_iterate=permutation_space):
+
         for index, _ in enumerate(permutation):  # we really don't care about the element itself here
 
             including = frozenset(permutation[:index + 1])  # forming the coaliting with the target element
