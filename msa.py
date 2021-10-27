@@ -1,6 +1,7 @@
 import random
-from typing import Callable, Optional, Dict, Tuple
 import warnings
+from typing import Callable, Optional, Dict, Tuple
+
 import pandas as pd
 from ordered_set import OrderedSet
 from typeguard import typechecked
@@ -191,6 +192,11 @@ def take_contributions(*,
     lesion_effects = dict.fromkeys(complement_space)
     objective_function_params = objective_function_params if objective_function_params else {}
 
+    if len(complement_space.items[0]) == 1:
+        warnings.warn("Are you sure you're not mistaking complement and combination spaces?"
+                      "Length of the first element in complement space is 1, that is usually n_elements-1",
+                      stacklevel=2)
+
     for combination in ut.generatorize(to_iterate=combination_space):
         complement = tuple(elements.difference(combination))  # lesion everything but the target coalition
         result = objective_function(complement, **objective_function_params)
@@ -249,6 +255,7 @@ def interface(*,
               objective_function: Callable,
               objective_function_params: Optional[Dict] = None,
               permutation_space: Optional[list] = None,
+              multiprocessing_method: str = 'joblib',
               ) -> Tuple[pd.DataFrame, Dict, Dict]:
     """
     A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
@@ -258,7 +265,8 @@ def interface(*,
             Number of permutations (samples) per element.
 
         n_parallel_games (int):
-            Number of parallel jobs, -1 means all CPU cores and 1 means a serial process.
+            Number of parallel jobs (number of to-be-occupied cores),
+            -1 means all CPU cores and 1 means a serial process.
             I suggest using 1 for debugging since things gets messy in parallel!
 
         elements (list):
@@ -293,6 +301,25 @@ def interface(*,
         permutation_space (Optional[list]):
             Already generated permutation space, in case you want to be more reproducible or something and use the same
             lesion combinations for many metrics.
+
+        multiprocessing_method (str):
+            So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+            documentations to see how to go for it. I guess ray works better on HPC clusters (if they support it tho!)
+            and probably doesn't suffer from the sneaky "memory leakage" of joblib. But just by playing around,
+            I realized joblib is faster for tasks that are small themselves. Remedies are here:
+            https://docs.ray.io/en/latest/auto_examples/tips-for-first-time.html
+
+            Note: Generally, multiprocessing isn't always faster as explained above. Use it when the function itself
+            takes some like each game takes longer than 0.5 seconds or so. For example, a function that sleeps for a
+            second on a set of 10 elements with 1000 permutations each (1024 games) performs as follows:
+
+                - no parallel: 1020 sec
+                - joblib: 63 sec
+                - ray: 65 sec
+
+            That makes sense since I have 16 cores and 1000/16 is around 62.
+
     Returns ([pd.DataFrame, Dict, Dict]):
         shapley_table, contributions, lesion_effects
 
@@ -320,11 +347,13 @@ def interface(*,
                                                            objective_function=objective_function,
                                                            objective_function_params=of_params)
     else:
-        contributions, lesion_effects = ut.parallelized_take_contributions(n_cores=n_parallel_games,
-                                                                           complement_space=complement_space,
-                                                                           combination_space=combination_space,
-                                                                           objective_function=objective_function,
-                                                                           objective_function_params=of_params)
+        contributions, lesion_effects = ut.parallelized_take_contributions(
+            multiprocessing_method=multiprocessing_method,
+            n_cores=n_parallel_games,
+            complement_space=complement_space,
+            combination_space=combination_space,
+            objective_function=objective_function,
+            objective_function_params=of_params)
 
     shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)
     return shapley_values, contributions, lesion_effects

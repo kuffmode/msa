@@ -1,11 +1,14 @@
 import gc
+import warnings
 from typing import Any, Generator, Iterable, Callable, Optional, Dict, Tuple
-from tqdm import tqdm
+
 import numpy as np
 import pandas as pd
+import ray
 from joblib import Parallel, delayed
 from joblib.externals.loky import get_reusable_executor
 from ordered_set import OrderedSet
+from tqdm import tqdm
 from typeguard import typechecked
 
 
@@ -25,8 +28,19 @@ def generatorize(to_iterate: Iterable[Any]) -> Generator[Any, None, None]:
         yield stuff
 
 
+def ray_iterator(obj_ids):
+    """
+    Not sure yet what's happening here! I took it for the progress bar from the link below:
+    https://github.com/ray-project/ray/issues/5554#issuecomment-558397627
+    """
+    while obj_ids:
+        done, obj_ids = ray.wait(obj_ids)
+        yield ray.get(done[0])
+
+
 @typechecked
 def parallelized_take_contributions(*,
+                                    multiprocessing_method: str = 'joblib',
                                     n_cores: int = -1,
                                     complement_space: OrderedSet,
                                     combination_space: OrderedSet,
@@ -45,9 +59,25 @@ def parallelized_take_contributions(*,
         the same result can be compared to the intact system to see how big was the impact of lesioning the complements.
         "Same same, but different, but still same!" - James Franco
 
-    # TODO: compatibility with GPU and HPC.
-
     Args:
+        multiprocessing_method (str):
+            So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+            documentations to see how to go for it. I guess ray works better on HPC clusters (if they support it tho!)
+            and probably doesn't suffer from the sneaky "memory leakage" of joblib. But just by playing around,
+            I realized joblib is faster for tasks that are small themselves. Remedies are here:
+            https://docs.ray.io/en/latest/auto_examples/tips-for-first-time.html
+
+            Note: Generally, multiprocessing isn't always faster as explained above. Use it when the function itself
+            takes some like each game takes longer than 0.5 seconds or so. For example, a function that sleeps for a
+            second on a set of 10 elements with 1000 permutations each (1024 games) performs as follows:
+
+                - no parallel: 1020 sec
+                - joblib: 63 sec
+                - ray: 65 sec
+
+            That makes sense since I have 16 cores and 1000/16 is around 62.
+
         n_cores (int):
             Number of parallel games. Default is -1, which means all cores so it can make the system
             freeze for a short period, if that happened then maybe go for -2, which means one core is
@@ -93,15 +123,43 @@ def parallelized_take_contributions(*,
         lesion_effects: A dictionary of lesions:results
     """
     objective_function_params = objective_function_params if objective_function_params else {}
+    if len(complement_space.items[0]) == 1:
+        warnings.warn("Are you sure you're not mistaking complement and combination spaces?"
+                      "Length of the first element in complement space is 1, that is usually n_elements-1",
+                      stacklevel=2)
+    if multiprocessing_method == 'ray':
+        if n_cores <= 0:
+            warnings.warn("A zero or a negative n_cores was passed and ray doesn't like so "
+                          "to fix that ray.init() will get no arguments, "
+                          "which means use all cores as n_cores = -1 does for joblib.", stacklevel=2)
+            ray.init()
+        else:
+            ray.init(num_cpus=n_cores)
 
-    results = (Parallel(n_jobs=n_cores)(delayed(objective_function)(
-        complement, **objective_function_params) for complement in tqdm(generatorize(
-        to_iterate=complement_space), total=len(complement_space), desc='Playing the games: ')))
+        result_ids = [objective_function.remote(complement, **objective_function_params) for complement in generatorize(
+            to_iterate=complement_space)]
+        for x in tqdm(ray_iterator(result_ids), total=len(result_ids)):
+            pass
+        results = ray.get(result_ids)
+        ray.shutdown()
+
+    elif multiprocessing_method == 'joblib':
+        if type(objective_function) is ray.remote_function.RemoteFunction:
+            raise ValueError('The objective function is decorated with ray. '
+                             'Either comment @ray.remote or use ray as the multiprocessing_method')
+
+        results = (Parallel(n_jobs=n_cores)(delayed(objective_function)(
+            complement, **objective_function_params) for complement in tqdm(generatorize(
+            to_iterate=complement_space), total=len(complement_space), desc='Playing the games: ')))
+    else:
+        raise NotImplemented("Available multiprocessing backends are 'ray' and 'joblib'")
 
     contributions = dict(zip(combination_space, results))
     lesion_effects = dict(zip(complement_space, results))
+
     gc.collect()
     get_reusable_executor().shutdown(wait=True)
+
     return contributions, lesion_effects
 
 
@@ -132,7 +190,7 @@ def distribution_of_processing(*, shapley_vector: pd.Series) -> np.float64:
         d, distribution of processing!
     """
     normalized = shapley_vector / shapley_vector.abs().sum()  # L1 norm
-    d = 1 - normalized.std() / np.sqrt(len(normalized) - 1 / len(normalized) ** 2)
+    d = 1 - normalized.std(ddof=0) / np.sqrt((len(normalized) - 1) / len(normalized) ** 2)
     return d
 
 
