@@ -77,6 +77,7 @@ def parallelized_take_contributions(*,
                 - ray: 65 sec
 
             That makes sense since I have 16 cores and 1000/16 is around 62.
+        # TODO: allow more flexibility in ray method. Scaling up to a cluster?
 
         n_cores (int):
             Number of parallel games. Default is -1, which means all cores so it can make the system
@@ -123,11 +124,15 @@ def parallelized_take_contributions(*,
         lesion_effects: A dictionary of lesions:results
     """
     objective_function_params = objective_function_params if objective_function_params else {}
+
     if len(complement_space.items[0]) == 1:
         warnings.warn("Are you sure you're not mistaking complement and combination spaces?"
                       "Length of the first element in complement space is 1, that is usually n_elements-1",
                       stacklevel=2)
     if multiprocessing_method == 'ray':
+        if type(objective_function) is not ray.remote_function.RemoteFunction:
+            raise ValueError("Objective function is not decorated with ray. You probably forgot @ray.remote")
+
         if n_cores <= 0:
             warnings.warn("A zero or a negative n_cores was passed and ray doesn't like so "
                           "to fix that ray.init() will get no arguments, "
@@ -138,8 +143,9 @@ def parallelized_take_contributions(*,
 
         result_ids = [objective_function.remote(complement, **objective_function_params) for complement in generatorize(
             to_iterate=complement_space)]
-        for x in tqdm(ray_iterator(result_ids), total=len(result_ids)):
+        for _ in tqdm(ray_iterator(result_ids), total=len(result_ids)):
             pass
+
         results = ray.get(result_ids)
         ray.shutdown()
 

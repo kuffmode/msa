@@ -6,13 +6,14 @@ import pandas as pd
 from ordered_set import OrderedSet
 from typeguard import typechecked
 
-import utils as ut
+from core import utils as ut
 
 
 @typechecked
 def make_permutation_space(*,
                            elements: list,
-                           n_permutations: int) -> list:
+                           n_permutations: int,
+                           random_seed: Optional[int] = None) -> list:
     """
     Generates a list of tuples containing n_permutations of the given elements.
     This will be used later in make_combination_space so you can have the same permutation and combination spaces for
@@ -41,12 +42,25 @@ def make_permutation_space(*,
             Number of permutations, Didn't check it systematically yet but just based on random explorations I'd say
             something around 1_000 is enough.
 
+        random_seed (Optional[int]):
+            sets the random seed of the sampling process. Default is None so if nothing is given every call results in
+            a different orderings.
+
     Returns (list[tuple]):
         Permutation space as a list of lists with shape (n_permutations, len(elements))
     """
-    permutation_space = []  # TODO: How not to make an empty placeholder first!
-    for sample in range(n_permutations):
-        permutation_space.append(tuple(random.sample(elements, len(elements))))
+
+    # ------------------------------#
+    if n_permutations <= 0:
+        raise ValueError("Specified number of permutations doesn't make sense because it's either zero or smaller.")
+    elif 1 < n_permutations < 100:
+        warnings.warn("Specified number of permutations is kinda small so the results might not be as accurate.",
+                      stacklevel=2)
+    # ------------------------------#
+    if random_seed:
+        random.seed(random_seed)
+
+    permutation_space = [tuple(random.sample(elements, len(elements))) for _ in range(n_permutations)]
     return permutation_space
 
 
@@ -78,12 +92,13 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
     Returns (OrderedSet):
         Combination space as an OrderedSet of frozensets.
     """
+
     combination_space = OrderedSet()
     for permutation in ut.generatorize(to_iterate=permutation_space):
 
         for index, _ in enumerate(permutation):  # we really don't care about the element itself here
 
-            including = frozenset(permutation[:index + 1])  # forming the coaliting with the target element
+            including = frozenset(permutation[:index + 1])  # forming the coalition with the target element
             excluding = frozenset(permutation[:index])  # forming it without the target element
 
             # It's possible to end up with the same coalitions many times so:
@@ -112,7 +127,16 @@ def make_complement_space(*,
     returns (OrderedSet):
         complements to be passed for lesioning.
     """
+
     elements = frozenset(elements)
+    diff = combination_space.items[len(elements)] ^ elements
+
+    # ------------------------------#
+    if len(diff) != 0:
+        raise ValueError(f"Elements in the combination space are different from what's in the elements list."
+                         f"The symmetric difference-set is: {list(diff)}")
+    # ------------------------------#
+
     complement_space = OrderedSet()
     for combination in ut.generatorize(to_iterate=combination_space):
         complement_space.add(tuple(elements.difference(combination)))
@@ -187,15 +211,19 @@ def take_contributions(*,
     Returns (Dict):
         A dictionary of combinations:results
     """
+
     elements = frozenset(elements)
     contributions = dict.fromkeys(combination_space)
     lesion_effects = dict.fromkeys(complement_space)
     objective_function_params = objective_function_params if objective_function_params else {}
 
-    if len(complement_space.items[0]) == 1:
+    # ------------------------------#
+    if len(complement_space.items[1]) == 0:
         warnings.warn("Are you sure you're not mistaking complement and combination spaces?"
-                      "Length of the first element in complement space is 1, that is usually n_elements-1",
+                      "Length of the first element in complement space (really, complement_space[1]) is 0. "
+                      "It should be equal to the number of elements.",
                       stacklevel=2)
+    # ------------------------------#
 
     for combination in ut.generatorize(to_iterate=combination_space):
         complement = tuple(elements.difference(combination))  # lesion everything but the target coalition
@@ -233,17 +261,20 @@ def make_shapley_values(*,
     """
     shapley_table = {}
     for permutation in ut.generatorize(to_iterate=permutation_space):
-        temp = []  # got to be a better way!
+        isolated_contributions = []  # got to be a better way!
 
         # if the set is small it's possible that the permutation space exhausts the combination space so:
         if permutation not in shapley_table:
             for index, element in enumerate(ut.generatorize(to_iterate=permutation)):
+
                 including = frozenset(permutation[:index + 1])
                 excluding = frozenset(permutation[:index])
-                temp.append(contributions[including] - contributions[excluding])
-            shapley_table[permutation] = temp
 
-    shapley_values = pd.DataFrame([dict(zip(perms, vals)) for perms, vals in shapley_table.items()])
+                isolated_contributions.append(contributions[including] - contributions[excluding])
+            shapley_table[permutation] = isolated_contributions
+
+    shapley_values = pd.DataFrame([
+        dict(zip(permutations, shapleys)) for permutations, shapleys in shapley_table.items()])
     return shapley_values
 
 
@@ -256,6 +287,7 @@ def interface(*,
               objective_function_params: Optional[Dict] = None,
               permutation_space: Optional[list] = None,
               multiprocessing_method: str = 'joblib',
+              random_seed: Optional[int] = None,
               ) -> Tuple[pd.DataFrame, Dict, Dict]:
     """
     A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
@@ -320,6 +352,10 @@ def interface(*,
 
             That makes sense since I have 16 cores and 1000/16 is around 62.
 
+        random_seed (Optional[int]):
+            sets the random seed of the sampling process. Default is None so if nothing is given every call results in
+            a different orderings.
+
     Returns ([pd.DataFrame, Dict, Dict]):
         shapley_table, contributions, lesion_effects
 
@@ -332,13 +368,15 @@ def interface(*,
 
     if not permutation_space:
         permutation_space = make_permutation_space(elements=elements,
-                                                   n_permutations=n_permutations)
+                                                   n_permutations=n_permutations,
+                                                   random_seed=random_seed)
     else:
         warnings.warn("A Permutation space is given so n_permutations will fall back to what's specified there.",
                       stacklevel=2)
 
     combination_space = make_combination_space(permutation_space=permutation_space)
-    complement_space = make_complement_space(combination_space=combination_space, elements=elements)
+    complement_space = make_complement_space(combination_space=combination_space,
+                                             elements=elements)
 
     if n_parallel_games == 1:
         contributions, lesion_effects = take_contributions(elements=elements,
@@ -357,5 +395,3 @@ def interface(*,
 
     shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)
     return shapley_values, contributions, lesion_effects
-
-# TODO: the option to specify random states?
