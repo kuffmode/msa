@@ -7,3 +7,5 @@ tqdm~=4.62.3
 ray~=1.7.0
 pytest~=6.2.5
 ordered-set ~= 4.0.2
+matplotlib ~= 3.4.3
+seaborn ~= 0.11.2

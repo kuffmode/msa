@@ -24,6 +24,12 @@ Here you can see a schematic representation of how the algorithm works (interest
 
 ## How it works in Python:
 I tried to make the package compact and easy-to-use but still there are a few things to keep in mind. Please take a look at the examples but just to give a flavor let's start working with the set ABCD as we have in the above picture.
+
+Importing will be just: 
+```
+from core import msa, utils as ut
+```
+Then we define some elements and generate the permutation space:
 ```
 nodes = ['A', 'B', 'C', 'D']
 permutation_space = msa.make_permutation_space(n_permutations=1000, elements=nodes)
@@ -91,9 +97,9 @@ def rnd(complements):
 We'll next play the games and aquire the contributions as follows:
 ```
 contributions, lesion_effects = msa.take_contributions(elements=nodes,
-													   combination_space=combination_space,
-													   complement_space=complement_space,
-													   objective_function=rnd)
+                                        combination_space=combination_space,
+                                        complement_space=complement_space,
+                                        objective_function=rnd)
 ```
 Both `contributions` and `lesion_effects` are the same values just addressed differently. For example, if the contribution of coalition `{'B', 'C'}` is 5 points then you can also say the effect of lesioning coalition `{'A', 'D'}` is 5 points. This by itself is not that informative but if you know the contribution of the grand coalition (intact system) then you can claim that the effect of lesioning `{'A', 'D'}` is a drop of some performance from x to 5.
 
