@@ -14,7 +14,7 @@ base_packages = ["pandas~=1.3.3",
                  "ordered-set ~= 4.0.2"]
 test_packages = ["pytest~=6.2.5"]
 
-setup(name="pymsa",
+setup(name="msapy",
       version="0.0.1",
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,

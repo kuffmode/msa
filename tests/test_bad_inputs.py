@@ -1,4 +1,4 @@
-from msa_src import msa
+from msapy import msa
 import pytest
 import ray
 

@@ -1,3 +1,6 @@
 /main.py
 /connectomes/
 /.pytest_cache/
+/build/
+/dist/
+/msapy.egg-info/

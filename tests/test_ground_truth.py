@@ -1,4 +1,4 @@
-from msa_src import msa, utils as ut
+from msapy import msa, utils as ut
 
 
 # ------------------------------#

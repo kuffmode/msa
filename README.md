@@ -16,7 +16,7 @@ And
 [Keinan, Alon, Ben Sandbank, Claus C. Hilgetag, Isaac Meilijson, and Eytan Ruppin. 2006. “Axiomatic Scalable Neurocontroller Analysis via the Shapley Value.” Artificial Life 12 (3): 333–52.](https://direct.mit.edu/artl/article/12/3/333/2530/Axiomatic-Scalable-Neurocontroller-Analysis-via)
 
 ## Installation:
-Start with making a virtual environment and a Python version `3.9` (still not tested on how much backward-compatible it is). Then clone the repository (`git clone https://github.com/kuffmode/msa.git`, move to the `msa` folder (`cd msa`), and run `pip install .` In case the requirements weren't installed automatically you can also use the command `pip install -r requirements.txt` and then let me know so I can fix it!
+The easiest way is to `pip install msapy`, but a less convenient way is to clone the repository (`git clone https://github.com/kuffmode/msa.git`, move to the `msa` folder (`cd msa`), and run `pip install .` In case the requirements weren't installed automatically you can also use the command `pip install -r requirements.txt` and then let me know so I can fix it!
 ## How it works:
 Here you can see a schematic representation of how the algorithm works (interested in math instead? check the papers above). Briefly, all MSA needs from you is a list of players and a game function. The players can be your nodes, for example, brain regions or indices in a connectivity matrix, or links between them as tuples. It then shuffles them to produce N orderings in which they can join the game. This can end with repeating permutations if the set is small but that's fine don't worry! MSA then produces a "combination space" in which it produces all the combinations the player should form coalitions. Then it uses your game function and fills the contributions of those coalitions. The last step is to perform a Shapley integration and isolate each player's contribution in that given permutation. Repeating this for all permutations produces a contribution table (shapley table) and you'll get your shapley values by averaging over permutations so the end result is a value per element/player. To get a better grasp of how this works in code, check the minimal example in the examples folder.
 
@@ -27,7 +27,7 @@ I tried to make the package compact and easy-to-use but still there are a few th
 
 Importing will be just: 
 ```
-from msa_src import msa, utils as ut
+from msapy import msa, utils as ut
 ```
 Then we define some elements and generate the permutation space:
 ```
