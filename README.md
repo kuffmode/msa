@@ -27,7 +27,7 @@ I tried to make the package compact and easy-to-use but still there are a few th
 
 Importing will be just: 
 ```
-from core import msa, utils as ut
+from msa_src import msa, utils as ut
 ```
 Then we define some elements and generate the permutation space:
 ```

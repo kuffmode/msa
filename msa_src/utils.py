@@ -48,7 +48,7 @@ def parallelized_take_contributions(*,
                                     objective_function_params: Optional[Dict] = None) -> Tuple[Dict, Dict]:
     """
     Same as the take_contribution function but parallelized over CPU cores to boost performance.
-    I'd first try the single core version on a toy example to make sure everything makes sense then
+    I'd first try the single msa_src version on a toy example to make sure everything makes sense then
     go for this because debugging parallel jobs is a disaster. Also, you don't need this if your game
     is happening on GPU. For HPC systems, I guess either dask or ray will be better options.
     ---------------
@@ -81,7 +81,7 @@ def parallelized_take_contributions(*,
 
         n_cores (int):
             Number of parallel games. Default is -1, which means all cores so it can make the system
-            freeze for a short period, if that happened then maybe go for -2, which means one core is
+            freeze for a short period, if that happened then maybe go for -2, which means one msa_src is
             left out. Or really just specify the number of threads you want to use!
 
         complement_space (OrderedSet):

@@ -13,7 +13,8 @@ base_packages = ["pandas~=1.3.3",
                  "ray~=1.7.0",
                  "ordered-set ~= 4.0.2"]
 test_packages = ["pytest~=6.2.5"]
-setup(name="msa",
+
+setup(name="pymsa",
       version="0.0.1",
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,

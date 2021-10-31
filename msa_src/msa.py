@@ -6,7 +6,7 @@ import pandas as pd
 from ordered_set import OrderedSet
 from typeguard import typechecked
 
-from core import utils as ut
+from msa_src import utils as ut
 
 
 @typechecked

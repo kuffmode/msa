@@ -1,4 +1,4 @@
-from core import msa, utils as ut
+from msa_src import msa, utils as ut
 
 
 # ------------------------------#
