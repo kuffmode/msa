@@ -15,7 +15,7 @@ base_packages = ["pandas~=1.3.3",
 test_packages = ["pytest~=6.2.5"]
 
 setup(name="msapy",
-      version="0.0.1",
+      version="0.0.2.1",
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,
       long_description_content_type='text/markdown',
@@ -28,6 +28,6 @@ setup(name="msapy",
           "License :: OSI Approved :: MIT License",
           "Intended Audience :: Science/Research",
           "Topic :: Scientific/Engineering"],
-      python_requires='>=3.9',
+      python_requires='>=3.8',
       install_requires=base_packages,
       include_package_data=True)
