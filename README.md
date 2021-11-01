@@ -16,7 +16,7 @@ And
 [Keinan, Alon, Ben Sandbank, Claus C. Hilgetag, Isaac Meilijson, and Eytan Ruppin. 2006. “Axiomatic Scalable Neurocontroller Analysis via the Shapley Value.” Artificial Life 12 (3): 333–52.](https://direct.mit.edu/artl/article/12/3/333/2530/Axiomatic-Scalable-Neurocontroller-Analysis-via)
 
 ## Installation:
-The easiest way is to `pip install msapy`, but a less convenient way is to clone the repository (`git clone https://github.com/kuffmode/msa.git`, move to the `msa` folder (`cd msa`), and run `pip install .` In case the requirements weren't installed automatically you can also use the command `pip install -r requirements.txt` and then let me know so I can fix it!
+The easiest way is to `pip install msapy`, I wrote this package in Python `3.9` and tried it on `3.8` so, it's safe to say you need at least a Python `3.8` so easy-installing it on older versions is not an option. Alternatively you can clone the repository (`git clone https://github.com/kuffmode/msa.git`, move to the `msa` folder (`cd msa`), and run `pip install .` In case the requirements weren't installed automatically you can also use the command `pip install -r requirements.txt` and then let me know so I can fix it!
 ## How it works:
 Here you can see a schematic representation of how the algorithm works (interested in math instead? check the papers above). Briefly, all MSA needs from you is a list of players and a game function. The players can be your nodes, for example, brain regions or indices in a connectivity matrix, or links between them as tuples. It then shuffles them to produce N orderings in which they can join the game. This can end with repeating permutations if the set is small but that's fine don't worry! MSA then produces a "combination space" in which it produces all the combinations the player should form coalitions. Then it uses your game function and fills the contributions of those coalitions. The last step is to perform a Shapley integration and isolate each player's contribution in that given permutation. Repeating this for all permutations produces a contribution table (shapley table) and you'll get your shapley values by averaging over permutations so the end result is a value per element/player. To get a better grasp of how this works in code, check the minimal example in the examples folder.
 
@@ -122,19 +122,31 @@ shapley_table, contributions, lesion_effects = msa.interface(multiprocessing_met
 ```
 For this one, all you have to do is to provide your elements, the objective function, and specify some parameters. For example, you can choose between two different multiprocessing toolboxes `joblib` and `ray` to distribute `msa.take_contributions` over `n_parallel_games`. Specifying a `random_seed` is encouraged for reproducibility but the default is `None`.
  
-## TODO (Contribution):
+## TODO (Interested in Contributing?):
 - More estimation methods.
 - Integrating `ray` with `ray cluster`.
-- Providing built-in objective functions for common neural network libraries.
+- Providing built-in objective functions for common use-cases.
 
 ## Cite:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5636435.svg)](https://doi.org/10.5281/zenodo.5636435)
+
+Kayson Fakhar. (2021). MSA: A compact Python package for Multiperturbation Shapley value Analysis. Zenodo. https://doi.org/10.5281/zenodo.5636435
+
 ```
-@misc{msa,
-  author = {Fakhar, Kayson},
-  title = {msa: A compact Python package for Multiperturbation Shapely value Analysis},
-  year = {2021},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/kuffmode/msa}},
+BibTeX:
+@software{kayson_fakhar_2021_5636435,
+  author       = {Kayson Fakhar},
+  title        = {{MSA: A compact Python package for 
+                   Multiperturbation Shapley value Analysis.}},
+  month        = nov,
+  year         = 2021,
+  publisher    = {Zenodo},
+  version      = {v0.0.2},
+  doi          = {10.5281/zenodo.5636435},
+  url          = {https://doi.org/10.5281/zenodo.5636435}
 }
 ```
+
+## Acknowledgement:
+I thank my good friend and Python mentor [Fabrizio Damicelli](https://github.com/fabridamicelli)  whom I learned a lot from. Without him this package would be a disaster to look at.
