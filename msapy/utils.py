@@ -201,14 +201,99 @@ def distribution_of_processing(*, shapley_vector: pd.Series) -> np.float64:
 
 
 @typechecked
-def sorter(shapley_table: pd.DataFrame) -> pd.DataFrame:
+def sorter(shapley_table: pd.DataFrame, ascending: Optional[bool] = False) -> pd.DataFrame:
     """
-    Sorts the elements based on their average shapley values.
+    Sorts the elements based on their average shapley values or in ascending order by calling df.sort_index(axis=1).
     Args:
+        ascending(bool):
+            I noticed although in the DataFrame itself the Shapley values are at their right places, but the order of
+            elements are shuffled (probably during the calculation). This causes headache and is potentially dangerous
+            if you're using a list of indices as elements that you'll translate to np or normal lists within your game.
+            so assuming the elements were in ascending order like np.arange or range, this will save you from the pain.
+
         shapley_table(pd.DataFrame):
-        unsorted shapley table.
+            Unsorted shapley table.
 
     Returns (pd.DataFrame):
         sorted shapley table.
     """
-    return shapley_table.reindex(shapley_table.mean().sort_values().index, axis=1)
+    if ascending:
+        return shapley_table.sort_index(axis=1)
+    else:
+        return shapley_table.reindex(shapley_table.mean().sort_values().index, axis=1)
+
+
+@typechecked
+def bootstrap_hypothesis_testing(*,
+                                 dataset: pd.DataFrame,
+                                 p_value: float = 0.05,
+                                 bootstrap_samples: int = 10_000,
+                                 reference_mean: Optional[int] = None) -> pd.DataFrame:
+    """
+    Performs a bootstrap hypothesis testing on the given dataset to find which elements have significant contributions.
+    Null hypothesis is: Elements have on average no contributions, unless a reference mean is given. This can be used
+    for both a dataset of Shapley values (Shapley table) or a dataset of lesions if there are many samples for each
+    element, e.g., if lesioning an element significantly impacted some feature of the system.
+    For more information, watch this brilliant tutorial:
+    https://www.youtube.com/watch?v=isEcgoCmlO0&t=893s
+
+    Args:
+        dataset (pd.DataFrame):
+            Common case use is Shapley table but anything else works too,
+            as long as it follows the same structure/format and you know what you're doing.
+
+        p_value (float):
+            Default is 0.05 **please first correct for multiple-comparisons** easiest and most conservative way:
+            Bonferroni correction, p_value/n_elements.
+
+        bootstrap_samples (int):
+            Number of bootstraps, default is 10_000 and I seems like it's a common practice to use 10_000.
+
+        reference_mean (Optional[int]):
+            In case the means should not be compared with a zero-mean distribution.
+
+    Returns:
+        Distributions that are significantly different from H0.
+
+    #TODO: really needs some performance optimization, probably with Numba and a change in the algorithm!
+    """
+    mean_adjusted_distributions = pd.DataFrame()
+    bootstrapped_distributions = pd.DataFrame()
+    significants = pd.DataFrame()
+    percentile = (1 - p_value) * 100
+
+    if p_value <= 0.:
+        raise ValueError("A zero/negative value for p_value? What?")
+
+    if bootstrap_samples <= 0.:
+        raise ValueError("A zero/negative value for bootstrap_samples? What?")
+
+    elif 1 < bootstrap_samples < 1_000:
+        warnings.warn("Bootstrap sample size is small, please go above 1000.", stacklevel=2)
+
+    for distribution in tqdm(dataset.columns, total=len(dataset.columns), desc='Bootstrapping: '):
+        if reference_mean:  # adjusting the distributions to have the same mean as the reference.
+            mean_adjusted_distributions[distribution] = \
+                dataset[distribution] - dataset[distribution].mean() + reference_mean
+
+        else:  # adjusting the distributions to center around zero.
+            mean_adjusted_distributions[distribution] = \
+                dataset[distribution] - dataset[distribution].mean()
+
+        resampled_means = []
+        for sample in range(bootstrap_samples):  # resampling (with replacement) from the mean-adjusted distribution
+            resampled_means.append(np.mean((np.random.choice(
+                list(mean_adjusted_distributions[distribution]),
+                len(mean_adjusted_distributions[distribution].values),
+                replace=True))))
+
+        bootstrapped_distributions[distribution] = resampled_means
+
+    # checking if the means are significantly different.
+    for bootstrapped_distribution in bootstrapped_distributions.columns:
+        percentiles = np.percentile(bootstrapped_distributions[bootstrapped_distribution], [0, percentile])
+        if not percentiles[0] <= dataset[bootstrapped_distribution].mean() <= percentiles[1]:
+            significants[bootstrapped_distribution] = dataset[bootstrapped_distribution]
+
+    significants = sorter(significants)
+    return significants

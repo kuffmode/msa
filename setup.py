@@ -11,11 +11,14 @@ base_packages = ["pandas~=1.3.3",
                  "setuptools~=58.0.4",
                  "tqdm~=4.62.3",
                  "ray~=1.7.0",
-                 "ordered-set ~= 4.0.2"]
+                 "ordered-set ~= 4.0.2",
+                 "matplotlib ~ = 3.4.3",
+                 "seaborn~ = 0.11.2"]
+
 test_packages = ["pytest~=6.2.5"]
 
 setup(name="msapy",
-      version="0.0.2.1",
+      version="0.0.2.3",
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,
       long_description_content_type='text/markdown',
