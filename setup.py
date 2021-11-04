@@ -12,8 +12,9 @@ base_packages = ["pandas~=1.3.3",
                  "tqdm~=4.62.3",
                  "ray~=1.7.0",
                  "ordered-set ~= 4.0.2",
-                 "matplotlib ~ = 3.4.3",
-                 "seaborn~ = 0.11.2"]
+                 "matplotlib ~= 3.4.3",
+                 "seaborn ~= 0.11.2"
+                 ]
 
 test_packages = ["pytest~=6.2.5"]
 
