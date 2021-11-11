@@ -1,10 +1,11 @@
 # Multi-perturbation Shapley value Analysis (MSA)
-<center> <h3>(work in progress)</h3> </center>
+<center><h3>(work in progress)</h3></center>
+
 
 <img align="left" src="images/Artboard%202.jpg" alt="msa logo" width="300"> 
 
 
-##TLDR: 
+TLDR: 
 A Game theoretical approach for calculating the contribution of each element of a system (here network models of the brain) to a system-wide description of the system. The classic neuroscience example: How much each brain region is causally relevant to an arbitrary cognitive function. 
 
 ## Motivation & such:
@@ -15,10 +16,9 @@ As you probably noticed this won't be feasible to calclulate as for example, it 
 [Keinan, Alon, Claus C. Hilgetag, Isaac Meilijson, and Eytan Ruppin. 2004. “Causal Localization of Neural Function: The Shapley Value Method.” Neurocomputing 58-60 (June): 215–22.
 ](https://www.sciencedirect.com/science/article/abs/pii/S0925231204000426?via%3Dihub)
 
-And
-
 [Keinan, Alon, Ben Sandbank, Claus C. Hilgetag, Isaac Meilijson, and Eytan Ruppin. 2006. “Axiomatic Scalable Neurocontroller Analysis via the Shapley Value.” Artificial Life 12 (3): 333–52.](https://direct.mit.edu/artl/article/12/3/333/2530/Axiomatic-Scalable-Neurocontroller-Analysis-via)
 
+And our own recent work [Kayson Fakhar, Claus C. Hilgetag. 2021. Systematic Perturbation of an Artificial Neural Network: A Step Towards Quantifying Causal Contributions in The Brain. bioRxiv 2021.11.04.467251](https://doi.org/10.1101/2021.11.04.467251)
 ## Installation:
 The easiest way is to `pip install msapy`, I wrote this package in Python `3.9` and tried it on `3.8` so, it's safe to say you need at least a Python `3.8` so easy-installing it on older versions is not an option. Alternatively you can clone the repository (`git clone https://github.com/kuffmode/msa.git`, move to the `msa` folder (`cd msa`), and run `pip install .` In case the requirements weren't installed automatically you can also use the command `pip install -r requirements.txt` and then let me know so I can fix it!
 ## How it works:
@@ -127,10 +127,10 @@ shapley_table, contributions, lesion_effects = msa.interface(multiprocessing_met
 For this one, all you have to do is to provide your elements, the objective function, and specify some parameters. For example, you can choose between two different multiprocessing toolboxes `joblib` and `ray` to distribute `msa.take_contributions` over `n_parallel_games`. Specifying a `random_seed` is encouraged for reproducibility but the default is `None`.
  
 ## TODO (Interested in Contributing?):
-- More estimation methods.
+- More estimation methods, for example see: [amiratag/neuronshapley](https://github.com/amiratag/neuronshapley).
 - Integrating `ray` with `ray cluster`.
 - Providing built-in objective functions for common use-cases.
-
+- Proper documentation page.
 ## Cite:
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5636435.svg)](https://doi.org/10.5281/zenodo.5636435)
