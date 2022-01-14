@@ -1,7 +1,7 @@
 import random
 import warnings
-from typing import Callable, Optional, Dict, Tuple
-
+from typing import Callable, Optional, Dict, Tuple, Union
+import numpy as np
 import pandas as pd
 from ordered_set import OrderedSet
 from typeguard import typechecked
@@ -236,7 +236,7 @@ def take_contributions(*,
 
 @typechecked
 def make_shapley_values(*,
-                        contributions: Dict,
+                        contributions: Union[Dict, Tuple[Dict, Dict]],
                         permutation_space: list) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
@@ -266,7 +266,6 @@ def make_shapley_values(*,
         # if the set is small it's possible that the permutation space exhausts the combination space so:
         if permutation not in shapley_table:
             for index, element in enumerate(ut.generatorize(to_iterate=permutation)):
-
                 including = frozenset(permutation[:index + 1])
                 excluding = frozenset(permutation[:index])
 
@@ -395,3 +394,145 @@ def interface(*,
 
     shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)
     return shapley_values, contributions, lesion_effects
+
+
+@typechecked
+def estimate_causal_influences(network_connectome: np.ndarray,
+                               objective_function: Callable,
+                               objective_function_params: Optional[Dict],
+                               multiprocessing_method: str = 'joblib',
+                               n_cores: int = -1,
+                               n_permutations: int = 1000,
+                               permutation_seed: Optional[int] = None,
+                               ) -> pd.DataFrame:
+    """
+    Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function
+    performs MSA iteratively on each node and tracks the changes in the objective_function of the taret node.
+    For example we have a chain A -> B -> C, and we want to know how much A and B are contributing to C. We first need to
+    define a metric for C (objective_function) which here let's say is the average activity of C. MSA then performs a
+    multi-site lesioning analysis of A and B so for each we will end up with a number indicating their contributions to
+    the average activity of C.
+
+    VERY IMPORTANT NOTES:
+        1. The resulting causal contribution matrix does not necessarily reflect the connectome. In the example above
+        there's no actual connection A -> C but there might be one in the causal contribution matrix since A is causally
+        influencing C via B.
+
+        2. Think twice (even three times) about your objective function. The same everything will result in different
+        causal contribution matrices depending on what are you tracking and how accurate it's capturing the effect of
+        lesions. Also don't forget the edge-cases. There will be weird behaviors in your system, for example, what it
+        does if every node is perturbed?
+
+        3. The metric you track is preferred to be non-negative and bounded (at least practically!)
+
+        4. Obviously this will take N times longer than a normal MSA with N is the number of nodes. So make sure your
+        process is as fast as it can be for example use Numba and stuff, but you don't need to implement any parallel
+        processes since it's already implemented here. Going below 1000 permutations might be an option depending on
+        your specific case but based on experience, it's not a good idea.
+
+        and 5. Shapley values sum up (or will be close) to the value of the intact coalition. So for example if the
+        mean activity of node C here is 50 then causal_contribution_matrix.sum(axis=0) = 50 or close to 50. If not it
+        means:
+            1. the number of permutations are not enough
+            2. there is randomness somewhere in the process
+            3. your objective function is not suitable
+
+
+    Args:
+        network_connectome (np.ndarray):
+            Structural backbone of your network.
+            I probably can turn this into a list of elements instead so #TODO.
+
+        objective_function (Callable):
+            The game (in-silico experiment). It should get the complement set and return one numeric value
+            either int or float.
+            This function is just calling it as: objective_function(complement, **objective_function_params)
+
+            An example using networkx with some tips:
+            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
+
+            def lesion_me_senpai(complements, network, index):
+                # note "index", your function should be able to track the effects on the target and the keyword for
+                  that is "index"
+
+                if len(complements) == len(A)-1:  # -1 since the target node is active
+                    return 0
+
+                lesioned_network = deepcopy(network)
+                for target in complements:
+                    lesioned_network[target] = 0  # setting all connections of the targets to 0
+
+                activity = network.run(lesioned_network) # or really, whatever you want!
+                return float(activity[index].mean())
+
+        objective_function_params (Optional[Dict]):
+            Kwargs for the objective_function. A dictionary pair of {'index': index} will be added to this during
+            the process so your function can track the lesion effect.
+
+        multiprocessing_method (str = 'joblib'):
+            So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+            documentations to see how to go for it.
+
+        n_cores (int = -1):
+            Number of parallel games. Default is -1, which means all cores so it can make the system
+            freeze for a short period, if that happened then maybe go for -2, which means one msapy is
+            left out. Or really just specify the number of threads you want to use!
+
+        n_permutations (int = 1000):
+            Number of permutations per node.
+            Didn't check it systematically yet but just based on random explorations
+            I'd say something around 1000 is enough.
+
+        permutation_seed (Optional[int] = None):
+            Sets the random seed of the sampling process. Default is None so if nothing is given every call results in
+            a different orderings.
+
+    Returns:
+
+    """
+
+    # Initialize the stuff
+    nodes = [node for node,_ in enumerate(network_connectome)]
+    permutations = dict()
+    combinations = dict()
+    complements = dict()
+    contributions = dict()
+    lesion_effects = dict()
+    shapley_values = dict()
+    objective_function_params = objective_function_params if objective_function_params else {}
+
+    # Looping through the nodes
+    for index, _ in enumerate(network_connectome):
+        print(f"working on the node number {index} from {len(network_connectome)} nodes.")
+        objective_function_params['index'] = index
+
+        # Takes the target out of the to_be_lesioned list
+        without_target = set(nodes).difference({index})
+
+        # Generates N permutations and their respective combinations/complements of the network without the target.
+        permutations[index] = make_permutation_space(n_permutations=n_permutations,
+                                                     elements=list(without_target),
+                                                     random_seed=permutation_seed)
+        combinations[index] = make_combination_space(permutation_space=permutations[index])
+        complements[index] = make_complement_space(combination_space=combinations[index],
+                                                   elements=list(without_target))
+
+        # Plays the game for each lesion combination
+        contributions[index], lesion_effects[index] = ut.parallelized_take_contributions(
+            multiprocessing_method=multiprocessing_method,
+            n_cores=n_cores,
+            complement_space=complements[index],
+            combination_space=combinations[index],
+            objective_function=objective_function,
+            objective_function_params=objective_function_params)
+
+        # Calculates the good-old Shapley values for the source nodes
+        shapley_values[index] = make_shapley_values(contributions=contributions[index],
+                                                    permutation_space=permutations[index])
+
+    # The value orders are not sorted so
+    for shapley_value in shapley_values:
+        shapley_values[shapley_value] = shapley_values[shapley_value].sort_index(axis=1).mean(axis=0)
+    causal_influences = pd.DataFrame.from_dict(shapley_values)
+    return causal_influences
