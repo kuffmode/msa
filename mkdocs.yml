@@ -1,0 +1,7 @@
+site_name: MSA (Multi-perturbation Shapley value Analysis)
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings
