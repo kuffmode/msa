@@ -1,0 +1,1 @@
+::: msapy.utils.parallelized_take_contributions

@@ -1,4 +1,3 @@
-# Multi-perturbation Shapley value Analysis (MSA)
 <center><h3>(work in progress)</h3></center>
 
 

@@ -46,8 +46,8 @@ def make_permutation_space(*,
             sets the random seed of the sampling process. Default is None so if nothing is given every call results in
             a different orderings.
 
-    Returns (list[tuple]):
-        Permutation space as a list of lists with shape (n_permutations, len(elements))
+    Returns:
+        (list[tuple]): Permutation space as a list of lists with shape (n_permutations, len(elements))
     """
 
     # ------------------------------#
@@ -89,8 +89,8 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
         permutation_space (list):
             A list of players to be shuffled n times.
 
-    Returns (OrderedSet):
-        Combination space as an OrderedSet of frozensets.
+    Returns:
+        (OrderedSet): Combination space as an OrderedSet of frozensets.
     """
 
     combination_space = OrderedSet()
@@ -124,8 +124,8 @@ def make_complement_space(*,
         elements (list):
             list of players.
 
-    returns (OrderedSet):
-        complements to be passed for lesioning.
+    Returns:
+        (OrderedSet): complements to be passed for lesioning.
     """
 
     elements = frozenset(elements)
@@ -208,8 +208,8 @@ def take_contributions(*,
         objective_function_params (Optional[Dict]):
             Kwargs for the objective_function.
 
-    Returns (Dict):
-        A dictionary of combinations:results
+    Returns:
+        (Dict): A dictionary of combinations:results
     """
 
     elements = frozenset(elements)
@@ -256,8 +256,8 @@ def make_shapley_values(*,
         permutation_space (list):
             Should be the same passed to make_combination_space.
 
-    Returns (pd.DataFrame):
-        Shapley table, columns will be elements and indices will be samples (permutations).
+    Returns:
+        (pd.DataFrame): Shapley table, columns will be elements and indices will be samples (permutations).
     """
     shapley_table = {}
     for permutation in ut.generatorize(to_iterate=permutation_space):
@@ -355,13 +355,13 @@ def interface(*,
             sets the random seed of the sampling process. Default is None so if nothing is given every call results in
             a different orderings.
 
-    Returns ([pd.DataFrame, Dict, Dict]):
-        shapley_table, contributions, lesion_effects
+    Returns:
+        Tuple[pd.DataFrame, Dict, Dict]: shapley_table, contributions, lesion_effects
 
-        Note that contributions and lesion_effects are the same values, addressed differently. For example:
-        If from a set of ABCD removing AC ends with some value x, you can say the contribution of BD=x and the
-        effect of removing AC=x. So the same values are addressed differently in the two returned Dicts.
-        Of course, it makes more sense to compare the lesion effects with the intact system but who am I to judge.
+    Note that contributions and lesion_effects are the same values, addressed differently. For example:
+    If from a set of ABCD removing AC ends with some value x, you can say the contribution of BD=x and the
+    effect of removing AC=x. So the same values are addressed differently in the two returned Dicts.
+    Of course, it makes more sense to compare the lesion effects with the intact system but who am I to judge.
     """
     of_params = objective_function_params if objective_function_params else {}
 
@@ -414,23 +414,20 @@ def estimate_causal_influences(network_connectome: np.ndarray,
     the average activity of C.
 
     VERY IMPORTANT NOTES:
+
         1. The resulting causal contribution matrix does not necessarily reflect the connectome. In the example above
         there's no actual connection A -> C but there might be one in the causal contribution matrix since A is causally
         influencing C via B.
-
         2. Think twice (even three times) about your objective function. The same everything will result in different
         causal contribution matrices depending on what are you tracking and how accurate it's capturing the effect of
         lesions. Also don't forget the edge-cases. There will be weird behaviors in your system, for example, what it
         does if every node is perturbed?
-
         3. The metric you track is preferred to be non-negative and bounded (at least practically!)
-
         4. Obviously this will take N times longer than a normal MSA with N is the number of nodes. So make sure your
         process is as fast as it can be for example use Numba and stuff, but you don't need to implement any parallel
         processes since it's already implemented here. Going below 1000 permutations might be an option depending on
-        your specific case but based on experience, it's not a good idea.
-
-        and 5. Shapley values sum up (or will be close) to the value of the intact coalition. So for example if the
+        your specific case but based on experience, it's not a good idea 
+        5. Shapley values sum up (or will be close) to the value of the intact coalition. So for example if the
         mean activity of node C here is 50 then causal_contribution_matrix.sum(axis=0) = 50 or close to 50. If not it
         means:
             1. the number of permutations are not enough
@@ -449,7 +446,6 @@ def estimate_causal_influences(network_connectome: np.ndarray,
             This function is just calling it as: objective_function(complement, **objective_function_params)
 
             An example using networkx with some tips:
-            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
 
             def lesion_me_senpai(complements, network, index):
                 # note "index", your function should be able to track the effects on the target and the keyword for
@@ -464,6 +460,9 @@ def estimate_causal_influences(network_connectome: np.ndarray,
 
                 activity = network.run(lesioned_network) # or really, whatever you want!
                 return float(activity[index].mean())
+
+            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
+
 
         objective_function_params (Optional[Dict]):
             Kwargs for the objective_function. A dictionary pair of {'index': index} will be added to this during
@@ -489,6 +488,7 @@ def estimate_causal_influences(network_connectome: np.ndarray,
             a different orderings.
 
     Returns:
+        causal_influences (pd.DataFrame)
 
     """
 
