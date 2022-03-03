@@ -21,8 +21,8 @@ def generatorize(to_iterate: Iterable[Any]) -> Generator[Any, None, None]:
         to_iterate (Iterable[Any]):
             The thing to iterate!
 
-    returns (Generator[Any]):
-        It actually yields an iteration but yeah.
+    yields:
+        (Generator[Any]): It actually yields an iteration but yeah.
     """
     for stuff in to_iterate:
         yield stuff
@@ -119,9 +119,10 @@ def parallelized_take_contributions(*,
         objective_function_params (Optional[Dict]):
             Kwargs for the objective_function.
 
-    Returns (Tuple[Dict, Dict]):
-        contributions: A dictionary of coalitions:results
-        lesion_effects: A dictionary of lesions:results
+    Returns:
+        (Tuple[Dict, Dict]): 
+        - contributions: A dictionary of coalitions:results
+        - lesion_effects: A dictionary of lesions:results
     """
     objective_function_params = objective_function_params if objective_function_params else {}
 
@@ -192,8 +193,8 @@ def distribution_of_processing(*, shapley_vector: pd.Series) -> np.float64:
             Shapley values of the system, not the shapley table tho, shapley values themselves, i.e., averaged over
             samples so each element has one shapley value.
 
-    returns (int):
-        d, distribution of processing!
+    returns:
+        np.float64: distribution of processing!
     """
     normalized = shapley_vector / shapley_vector.abs().sum()  # L1 norm
     d = 1 - normalized.std(ddof=0) / np.sqrt((len(normalized) - 1) / len(normalized) ** 2)
@@ -203,7 +204,8 @@ def distribution_of_processing(*, shapley_vector: pd.Series) -> np.float64:
 @typechecked
 def sorter(shapley_table: pd.DataFrame, ascending: Optional[bool] = False) -> pd.DataFrame:
     """
-    Sorts the elements based on their average shapley values or in ascending order by calling df.sort_index(axis=1).
+    Sorts the elements based on their average shapley values or in ascending order by calling:
+        `df.sort_index(axis=1)`
     Args:
         ascending(bool):
             I noticed although in the DataFrame itself the Shapley values are at their right places, but the order of
@@ -214,8 +216,8 @@ def sorter(shapley_table: pd.DataFrame, ascending: Optional[bool] = False) -> pd
         shapley_table(pd.DataFrame):
             Unsorted shapley table.
 
-    Returns (pd.DataFrame):
-        sorted shapley table.
+    Returns:
+         (pd.DataFrame): sorted shapley table.
     """
     if ascending:
         return shapley_table.sort_index(axis=1)
@@ -253,7 +255,7 @@ def bootstrap_hypothesis_testing(*,
             In case the means should not be compared with a zero-mean distribution.
 
     Returns:
-        Distributions that are significantly different from H0.
+        pd.DataFrame: Distributions that are significantly different from H0.
 
     #TODO: really needs some performance optimization, probably with Numba and a change in the algorithm!
     """
