@@ -11,3 +11,4 @@ matplotlib ~= 3.4.3
 seaborn ~= 0.11.2
 mkdocs-material
 mkdocstrings
+mkdocs-jupyter
