@@ -1,0 +1,1 @@
+::: msapy.msa.take_contributions

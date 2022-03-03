@@ -2,6 +2,21 @@ site_name: MSA (Multi-perturbation Shapley value Analysis)
 theme:
   name: material
 
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition # alerts
+  - codehilite
+  - pymdownx.highlight
+
+use_directory_urls: false
+
 plugins:
-  - search
-  - mkdocstrings
+- search
+- mkdocs-jupyter
+- mkdocstrings:
+    handlers:
+      custom_handler:
+        rendering:
+          separate_signature: true
