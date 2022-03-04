@@ -13,6 +13,7 @@ from msapy import utils as ut
 def make_permutation_space(*,
                            elements: list,
                            n_permutations: int,
+                           rng: Optional[np.random.Generator] = None,
                            random_seed: Optional[int] = None) -> list:
     """
     Generates a list of tuples containing n_permutations of the given elements.
@@ -42,9 +43,10 @@ def make_permutation_space(*,
             Number of permutations, Didn't check it systematically yet but just based on random explorations I'd say
             something around 1_000 is enough.
 
+        rng (Optional[np.random.Generator]): Numpy random generator object used for reproducable results. Default is None.
+
         random_seed (Optional[int]):
-            sets the random seed of the sampling process. Default is None so if nothing is given every call results in
-            a different orderings.
+            sets the random seed of the sampling process. Only used when `rng` is None. Default is None.
 
     Returns:
         (list[tuple]): Permutation space as a list of lists with shape (n_permutations, len(elements))
@@ -57,10 +59,10 @@ def make_permutation_space(*,
         warnings.warn("Specified number of permutations is kinda small so the results might not be as accurate.",
                       stacklevel=2)
     # ------------------------------#
-    if random_seed:
-        random.seed(random_seed)
+    if not rng:
+        rng = np.random.default_rng(random_seed) if random_seed else np.random.default_rng()
 
-    permutation_space = [tuple(random.sample(elements, len(elements))) for _ in range(n_permutations)]
+    permutation_space = [tuple(rng.permutation(elements)) for _ in range(n_permutations)]
     return permutation_space
 
 
@@ -286,6 +288,7 @@ def interface(*,
               objective_function_params: Optional[Dict] = None,
               permutation_space: Optional[list] = None,
               multiprocessing_method: str = 'joblib',
+              rng: Optional[np.random.Generator] = None,
               random_seed: Optional[int] = None,
               ) -> Tuple[pd.DataFrame, Dict, Dict]:
     """
@@ -351,9 +354,10 @@ def interface(*,
 
             That makes sense since I have 16 cores and 1000/16 is around 62.
 
+        rng (Optional[np.random.Generator]): Numpy random generator object used for reproducable results. Default is None.
+
         random_seed (Optional[int]):
-            sets the random seed of the sampling process. Default is None so if nothing is given every call results in
-            a different orderings.
+            sets the random seed of the sampling process. Only used when `rng` is None. Default is None.
 
     Returns:
         Tuple[pd.DataFrame, Dict, Dict]: shapley_table, contributions, lesion_effects
@@ -365,10 +369,13 @@ def interface(*,
     """
     of_params = objective_function_params if objective_function_params else {}
 
+    if not rng:
+        rng = np.random.default_rng(random_seed) if random_seed else np.random.default_rng()
+
     if not permutation_space:
         permutation_space = make_permutation_space(elements=elements,
                                                    n_permutations=n_permutations,
-                                                   random_seed=random_seed)
+                                                   rng=rng)
     else:
         warnings.warn("A Permutation space is given so n_permutations will fall back to what's specified there.",
                       stacklevel=2)
