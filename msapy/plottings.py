@@ -20,7 +20,7 @@ def set_style(font_size: int = 10):
 @typechecked
 def color_code(shapley_table: pd.DataFrame,
                significants: Optional[pd.DataFrame] = None,
-               as_cmap:Optional[bool] = False) -> mpl.colors.Colormap:
+               as_cmap:Optional[bool] = False):
     """
     Maps the custom color map onto the elements for plotting.
     Args:
@@ -34,7 +34,7 @@ def color_code(shapley_table: pd.DataFrame,
             If it should be a cmap or not. Usually not necessary but some plots like plt.scatter need cmap.
 
     Returns:
-        (mpl.colors.Colormap): Either a seaborn color palette or a matplotlib colormap.
+        Either a seaborn color palette or a matplotlib colormap.
 
     """
     if type(significants) != pd.DataFrame:
