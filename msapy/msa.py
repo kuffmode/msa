@@ -96,7 +96,7 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
     """
 
     combination_space = OrderedSet()
-    for permutation in ut.generatorize(to_iterate=permutation_space):
+    for permutation in permutation_space:
 
         for index, _ in enumerate(permutation):  # we really don't care about the element itself here
 
@@ -140,7 +140,7 @@ def make_complement_space(*,
     # ------------------------------#
 
     complement_space = OrderedSet()
-    for combination in ut.generatorize(to_iterate=combination_space):
+    for combination in combination_space:
         complement_space.add(tuple(elements.difference(combination)))
     return complement_space
 
@@ -227,7 +227,7 @@ def take_contributions(*,
                       stacklevel=2)
     # ------------------------------#
 
-    for combination in ut.generatorize(to_iterate=combination_space):
+    for combination in combination_space:
         complement = tuple(elements.difference(combination))  # lesion everything but the target coalition
         result = objective_function(complement, **objective_function_params)
 
@@ -262,12 +262,12 @@ def make_shapley_values(*,
         (pd.DataFrame): Shapley table, columns will be elements and indices will be samples (permutations).
     """
     shapley_table = {}
-    for permutation in ut.generatorize(to_iterate=permutation_space):
+    for permutation in permutation_space:
         isolated_contributions = []  # got to be a better way!
 
         # if the set is small it's possible that the permutation space exhausts the combination space so:
         if permutation not in shapley_table:
-            for index, element in enumerate(ut.generatorize(to_iterate=permutation)):
+            for index, element in enumerate(permutation):
                 including = frozenset(permutation[:index + 1])
                 excluding = frozenset(permutation[:index])
 

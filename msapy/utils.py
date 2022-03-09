@@ -12,22 +12,6 @@ from tqdm import tqdm
 from typeguard import typechecked
 
 
-@typechecked
-def generatorize(to_iterate: Iterable[Any]) -> Generator[Any, None, None]:
-    """
-    Not sure how useful is this but this function makes a generator out of an iterable.
-    Probably good for very large combinaton_spaces.
-    Args:
-        to_iterate (Iterable[Any]):
-            The thing to iterate!
-
-    yields:
-        (Generator[Any]): It actually yields an iteration but yeah.
-    """
-    for stuff in to_iterate:
-        yield stuff
-
-
 def ray_iterator(obj_ids):
     """
     Not sure yet what's happening here! I took it for the progress bar from the link below:
@@ -142,8 +126,7 @@ def parallelized_take_contributions(*,
         else:
             ray.init(num_cpus=n_cores)
 
-        result_ids = [objective_function.remote(complement, **objective_function_params) for complement in generatorize(
-            to_iterate=complement_space)]
+        result_ids = [objective_function.remote(complement, **objective_function_params) for complement in complement_space]
         for _ in tqdm(ray_iterator(result_ids), total=len(result_ids)):
             pass
 
@@ -156,8 +139,7 @@ def parallelized_take_contributions(*,
                              'Either comment @ray.remote or use ray as the multiprocessing_method')
 
         results = (Parallel(n_jobs=n_cores)(delayed(objective_function)(
-            complement, **objective_function_params) for complement in tqdm(generatorize(
-            to_iterate=complement_space), total=len(complement_space), desc='Playing the games: ')))
+            complement, **objective_function_params) for complement in tqdm(complement_space, total=len(complement_space), desc='Playing the games: ')))
     else:
         raise NotImplemented("Available multiprocessing backends are 'ray' and 'joblib'")
 

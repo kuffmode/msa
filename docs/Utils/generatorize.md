@@ -1,1 +1,0 @@
-::: msapy.utils.generatorize
