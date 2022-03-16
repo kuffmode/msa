@@ -4,4 +4,5 @@
 /build/
 /dist/
 /msapy.egg-info/
-/examples/.ipynb_checkpoints/
+docs/examples/.ipynb_checkpoints/
+docs/examples/data

@@ -239,7 +239,7 @@ def take_contributions(*,
 @typechecked
 def make_shapley_values(*,
                         contributions: Union[Dict, Tuple[Dict, Dict]],
-                        permutation_space: list) -> pd.DataFrame:
+                        permutation_space: list) -> Union[pd.DataFrame, Dict[str, pd.DataFrame]]:
     """
     Calculates Shapley values based on the filled contribution_space.
     Briefly, for a permutation (A,B,C) it will be:
@@ -259,8 +259,16 @@ def make_shapley_values(*,
             Should be the same passed to make_combination_space.
 
     Returns:
-        (pd.DataFrame): Shapley table, columns will be elements and indices will be samples (permutations).
+        Union[pd.DataFrame, Dict[str, pd.DataFrame]]: Shapley table or a dict of Shapely tables, columns will be 
+        elements and indices will be samples (permutations). It will be a dict if the contributions are also a dict
+        i.e. the objective function returns multiple score functions (eg. accuracy, f1_score, etc.)
     """
+    arbitrary_contrib = next(iter(contributions.values()))
+    multi_scores = isinstance(arbitrary_contrib, dict)
+    if multi_scores:
+        scores = list(arbitrary_contrib.keys())
+        contributions = {k: np.array(list(v.values())) for k, v in contributions.items()}
+
     shapley_table = {}
     for permutation in permutation_space:
         isolated_contributions = []  # got to be a better way!
@@ -270,12 +278,19 @@ def make_shapley_values(*,
             for index, element in enumerate(permutation):
                 including = frozenset(permutation[:index + 1])
                 excluding = frozenset(permutation[:index])
-
                 isolated_contributions.append(contributions[including] - contributions[excluding])
-            shapley_table[permutation] = isolated_contributions
+            shapley_table[permutation] = np.array(isolated_contributions)
 
-    shapley_values = pd.DataFrame([
-        dict(zip(permutations, shapleys)) for permutations, shapleys in shapley_table.items()])
+    if not multi_scores:
+        shapley_values = pd.DataFrame([
+            dict(zip(permutations, shapleys)) for permutations, shapleys in shapley_table.items()])
+        return shapley_values
+    
+    shapley_values = {}
+    for i, score in enumerate(scores):
+        shapley_values[score] = pd.DataFrame([
+            dict(zip(permutations, shapleys[:, i])) for permutations, shapleys in shapley_table.items()])
+
     return shapley_values
 
 
@@ -290,7 +305,7 @@ def interface(*,
               multiprocessing_method: str = 'joblib',
               rng: Optional[np.random.Generator] = None,
               random_seed: Optional[int] = None,
-              ) -> Tuple[pd.DataFrame, Dict, Dict]:
+              ) -> Tuple[Union[pd.DataFrame, Dict[str, pd.DataFrame]], Dict, Dict]:
     """
     A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
 
@@ -360,7 +375,7 @@ def interface(*,
             sets the random seed of the sampling process. Only used when `rng` is None. Default is None.
 
     Returns:
-        Tuple[pd.DataFrame, Dict, Dict]: shapley_table, contributions, lesion_effects
+        Tuple[Union[pd.DataFrame, Dict[str, pd.DataFrame]], Dict, Dict]: shapley_table or a dict of shapley_table, contributions, lesion_effects
 
     Note that contributions and lesion_effects are the same values, addressed differently. For example:
     If from a set of ABCD removing AC ends with some value x, you can say the contribution of BD=x and the
@@ -543,3 +558,20 @@ def estimate_causal_influences(network_connectome: np.ndarray,
         shapley_values[shapley_value] = shapley_values[shapley_value].sort_index(axis=1).mean(axis=0)
     causal_influences = pd.DataFrame.from_dict(shapley_values)
     return causal_influences
+
+@typechecked
+def _is_iterable(obj: object) -> bool:
+    """Checks if the object passed is an iterable. Uses ducktyping.
+
+    Args:
+        obj (object): 
+
+    Returns:
+        bool: returns True if object is iterable
+    """
+    try:
+        iter(obj)
+    except Exception:
+        return False
+    else:
+        return True
