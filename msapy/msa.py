@@ -1,4 +1,3 @@
-import random
 import warnings
 from typing import Callable, Optional, Dict, Tuple, Union
 import numpy as np
@@ -239,7 +238,7 @@ def take_contributions(*,
 @typechecked
 def make_shapley_values(*,
                         contributions: Union[Dict, Tuple[Dict, Dict]],
-                        permutation_space: list) -> Union[pd.DataFrame, Dict[str, pd.DataFrame]]:
+                        permutation_space: list) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
     Briefly, for a permutation (A,B,C) it will be:
@@ -259,12 +258,17 @@ def make_shapley_values(*,
             Should be the same passed to make_combination_space.
 
     Returns:
-        Union[pd.DataFrame, Dict[str, pd.DataFrame]]: Shapley table or a dict of Shapely tables, columns will be 
-        elements and indices will be samples (permutations). It will be a dict if the contributions are also a dict
+        pd.DataFrame: Shapley table or a dict of Shapely tables, columns will be 
+        elements and indices will be samples (permutations). 
+        It will be a Multi-Index DataFrame if the contributions are a dict
         i.e. the objective function returns multiple score functions (eg. accuracy, f1_score, etc.)
+        It will be a Multi-Index DataFrame if the contributions are a timeseries.
+        The index at `level=1` will be the timestamps
     """
     arbitrary_contrib = next(iter(contributions.values()))
     multi_scores = isinstance(arbitrary_contrib, dict)
+    is_timeseries = _is_iterable(arbitrary_contrib) and (not multi_scores)
+
     if multi_scores:
         scores = list(arbitrary_contrib.keys())
         contributions = {k: np.array(list(v.values())) for k, v in contributions.items()}
@@ -284,12 +288,14 @@ def make_shapley_values(*,
     if not multi_scores:
         shapley_values = pd.DataFrame([
             dict(zip(permutations, shapleys)) for permutations, shapleys in shapley_table.items()])
-        return shapley_values
-    
-    shapley_values = {}
-    for i, score in enumerate(scores):
-        shapley_values[score] = pd.DataFrame([
-            dict(zip(permutations, shapleys[:, i])) for permutations, shapleys in shapley_table.items()])
+        return _process_timeseries_shapley(shapley_values) if is_timeseries else shapley_values
+
+    shapley_values = []
+    for i in range(len(arbitrary_contrib)):
+        shapley_values.append(pd.DataFrame([
+            dict(zip(permutations, shapleys[:, i])) for permutations, shapleys in shapley_table.items()]))
+
+    shapley_values = pd.concat(shapley_values, keys=scores) if multi_scores else shapley_values
 
     return shapley_values
 
@@ -305,7 +311,7 @@ def interface(*,
               multiprocessing_method: str = 'joblib',
               rng: Optional[np.random.Generator] = None,
               random_seed: Optional[int] = None,
-              ) -> Tuple[Union[pd.DataFrame, Dict[str, pd.DataFrame]], Dict, Dict]:
+              ) -> Tuple[pd.DataFrame, Dict, Dict]:
     """
     A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
 
@@ -375,7 +381,7 @@ def interface(*,
             sets the random seed of the sampling process. Only used when `rng` is None. Default is None.
 
     Returns:
-        Tuple[Union[pd.DataFrame, Dict[str, pd.DataFrame]], Dict, Dict]: shapley_table or a dict of shapley_table, contributions, lesion_effects
+        Tuple[pd.DataFrame, Dict, Dict]: shapley_table, contributions, lesion_effects
 
     Note that contributions and lesion_effects are the same values, addressed differently. For example:
     If from a set of ABCD removing AC ends with some value x, you can say the contribution of BD=x and the
@@ -575,3 +581,20 @@ def _is_iterable(obj: object) -> bool:
         return False
     else:
         return True
+
+
+@typechecked
+def _process_timeseries_shapley(shapley_values: pd.DataFrame) -> pd.DataFrame:
+    num_permutation, num_nodes = shapley_values.shape
+    data = np.stack(shapley_values.values.flatten())
+    num_timestamps = data.shape[-1]
+    data = data.reshape(num_permutation, num_nodes, -1)
+    data = data.transpose((0, 2, 1)).reshape((-1, num_nodes))
+
+    shapley_values = pd.DataFrame(data=data,
+                                  index=pd.MultiIndex.from_product(
+                                      [range(num_permutation), range(num_timestamps)], names=[None, "timestamp"]),
+                                  columns=shapley_values.columns
+                                  )
+
+    return shapley_values
