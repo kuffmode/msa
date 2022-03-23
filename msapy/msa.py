@@ -265,9 +265,7 @@ def make_shapley_values(*,
         It will be a Multi-Index DataFrame if the contributions are a timeseries.
         The index at `level=1` will be the timestamps
     """
-    arbitrary_contrib = next(iter(contributions.values()))
-    multi_scores = isinstance(arbitrary_contrib, dict)
-    is_timeseries = _is_iterable(arbitrary_contrib) and (not multi_scores)
+    arbitrary_contrib, multi_scores, is_timeseries = _check_contribution_type(contributions)
 
     if multi_scores:
         scores = list(arbitrary_contrib.keys())
@@ -425,9 +423,9 @@ def interface(*,
 
 
 @typechecked
-def estimate_causal_influences(network_connectome: np.ndarray,
+def estimate_causal_influences(elements: list,
                                objective_function: Callable,
-                               objective_function_params: Optional[Dict],
+                               objective_function_params: dict = {},
                                multiprocessing_method: str = 'joblib',
                                n_cores: int = -1,
                                n_permutations: int = 1000,
@@ -464,9 +462,8 @@ def estimate_causal_influences(network_connectome: np.ndarray,
 
 
     Args:
-        network_connectome (np.ndarray):
-            Structural backbone of your network.
-            I probably can turn this into a list of elements instead so #TODO.
+        elements (list):
+            List of the players (elements). Can be strings (names), integers (indicies), and tuples.
 
         objective_function (Callable):
             The game (in-silico experiment). It should get the complement set and return one numeric value
@@ -521,49 +518,50 @@ def estimate_causal_influences(network_connectome: np.ndarray,
     """
 
     # Initialize the stuff
-    nodes = [node for node,_ in enumerate(network_connectome)]
-    permutations = dict()
-    combinations = dict()
-    complements = dict()
-    contributions = dict()
-    lesion_effects = dict()
-    shapley_values = dict()
-    objective_function_params = objective_function_params if objective_function_params else {}
-
+    shapley_values = []
     # Looping through the nodes
-    for index, _ in enumerate(network_connectome):
-        print(f"working on the node number {index} from {len(network_connectome)} nodes.")
+    for index, element in enumerate(elements):
+        print(f"working on node number {index} from {len(elements)} nodes.")
         objective_function_params['index'] = index
 
         # Takes the target out of the to_be_lesioned list
-        without_target = set(nodes).difference({index})
+        without_target = set(elements).difference({element})
 
         # Generates N permutations and their respective combinations/complements of the network without the target.
-        permutations[index] = make_permutation_space(n_permutations=n_permutations,
-                                                     elements=list(without_target),
-                                                     random_seed=permutation_seed)
-        combinations[index] = make_combination_space(permutation_space=permutations[index])
-        complements[index] = make_complement_space(combination_space=combinations[index],
-                                                   elements=list(without_target))
+        permutations = make_permutation_space(n_permutations=n_permutations,
+                                              elements=list(without_target),
+                                              random_seed=permutation_seed)
+        combinations = make_combination_space(permutation_space=permutations)
+        complements = make_complement_space(combination_space=combinations,
+                                            elements=list(without_target))
 
         # Plays the game for each lesion combination
-        contributions[index], lesion_effects[index] = ut.parallelized_take_contributions(
+        contributions, _ = ut.parallelized_take_contributions(
             multiprocessing_method=multiprocessing_method,
             n_cores=n_cores,
-            complement_space=complements[index],
-            combination_space=combinations[index],
+            complement_space=complements,
+            combination_space=combinations,
             objective_function=objective_function,
             objective_function_params=objective_function_params)
 
-        # Calculates the good-old Shapley values for the source nodes
-        shapley_values[index] = make_shapley_values(contributions=contributions[index],
-                                                    permutation_space=permutations[index])
+        _, multi_scores, is_timeseries = _check_contribution_type(
+            contributions)
 
-    # The value orders are not sorted so
-    for shapley_value in shapley_values:
-        shapley_values[shapley_value] = shapley_values[shapley_value].sort_index(axis=1).mean(axis=0)
-    causal_influences = pd.DataFrame.from_dict(shapley_values)
-    return causal_influences
+        # Calculates the good-old Shapley values for the source nodes
+        shapley_value = make_shapley_values(
+            contributions=contributions, permutation_space=permutations).sort_index(axis=1)
+
+        if multi_scores:
+            shapley_value = shapley_value.groupby(level=0).mean()
+        elif is_timeseries:
+            shapley_value = shapley_value.groupby(level=1).mean()
+        else:
+            shapley_value = shapley_value.mean()
+
+        shapley_values.append(shapley_value)
+
+    causal_influences = pd.concat(shapley_values, keys=elements)
+    return causal_influences.swaplevel().sort_index(level=0) if multi_scores else causal_influences
 
 @typechecked
 def _is_iterable(obj: object) -> bool:
@@ -598,3 +596,11 @@ def _process_timeseries_shapley(shapley_values: pd.DataFrame) -> pd.DataFrame:
                                   )
 
     return shapley_values
+
+
+@typechecked
+def _check_contribution_type(contributions: dict) -> Tuple[Union[dict, float, np.ndarray], bool, bool]:
+    arbitrary_contrib = next(iter(contributions.values()))
+    multi_scores = isinstance(arbitrary_contrib, dict)
+    is_timeseries = _is_iterable(arbitrary_contrib) and (not multi_scores)
+    return arbitrary_contrib, multi_scores, is_timeseries
