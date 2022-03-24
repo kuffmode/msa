@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 DESCRIPTION = "Multi-perturbation Shapley value Analysis (MSA)"
-with open("README.md", encoding="utf-8") as f:
+with open("docs/README.md", encoding="utf-8") as f:
     LONG_DESCRIPTION = f.read()
 
 base_packages = ["pandas~=1.3.3",
