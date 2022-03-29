@@ -420,7 +420,7 @@ def interface(*,
             objective_function=objective_function,
             objective_function_params=objective_function_params)
 
-    shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)
+    shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)[elements]
     return shapley_values, contributions, lesion_effects
 
 
