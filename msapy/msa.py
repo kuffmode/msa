@@ -550,7 +550,8 @@ def estimate_causal_influences(elements: list,
 
         shapley_values.append(shapley_value)
 
-    causal_influences = pd.concat(shapley_values, keys=elements)
+    causal_influences = pd.concat(shapley_values, keys=elements) if (
+        multi_scores or is_timeseries) else pd.DataFrame(shapley_values, columns=elements)
     return causal_influences.swaplevel().sort_index(level=0) if multi_scores else causal_influences
 
 
