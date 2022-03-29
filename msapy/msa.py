@@ -427,7 +427,7 @@ def interface(*,
 @typechecked
 def estimate_causal_influences(elements: list,
                                objective_function: Callable,
-                               objective_function_params: dict = {},
+                               objective_function_params: Optional[dict] = None,
                                multiprocessing_method: str = 'joblib',
                                n_cores: int = -1,
                                n_permutations: int = 1000,
@@ -518,6 +518,7 @@ def estimate_causal_influences(elements: list,
         causal_influences (pd.DataFrame)
 
     """
+    objective_function_params = objective_function_params if objective_function_params else {}
 
     # Initialize the stuff
     shapley_values = []
