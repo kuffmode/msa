@@ -6,6 +6,7 @@ from ordered_set import OrderedSet
 from typeguard import typechecked
 
 from msapy import utils as ut
+from msapy.checks import _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type
 
 
 @typechecked
@@ -52,11 +53,8 @@ def make_permutation_space(*,
     """
 
     # ------------------------------#
-    if n_permutations <= 0:
-        raise ValueError("Specified number of permutations doesn't make sense because it's either zero or smaller.")
-    elif 1 < n_permutations < 100:
-        warnings.warn("Specified number of permutations is kinda small so the results might not be as accurate.",
-                      stacklevel=2)
+    _check_valid_elements(elements)
+    _check_valid_n_permutations(n_permutations)
     # ------------------------------#
     if not rng:
         rng = np.random.default_rng(random_seed) if random_seed else np.random.default_rng()
@@ -94,6 +92,8 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
         (OrderedSet): Combination space as an OrderedSet of frozensets.
     """
 
+    _check_valid_permutation_space(permutation_space)
+
     combination_space = OrderedSet()
     for permutation in permutation_space:
 
@@ -128,6 +128,7 @@ def make_complement_space(*,
     Returns:
         (OrderedSet): complements to be passed for lesioning.
     """
+    _check_valid_elements(elements)
 
     elements = frozenset(elements)
     diff = combination_space.items[len(elements)] ^ elements
@@ -237,7 +238,7 @@ def take_contributions(*,
 
 @typechecked
 def make_shapley_values(*,
-                        contributions: Union[Dict, Tuple[Dict, Dict]],
+                        contributions: Dict,
                         permutation_space: list) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
@@ -265,7 +266,8 @@ def make_shapley_values(*,
         It will be a Multi-Index DataFrame if the contributions are a timeseries.
         The index at `level=1` will be the timestamps
     """
-    arbitrary_contrib, multi_scores, is_timeseries = _check_contribution_type(contributions)
+    _check_valid_permutation_space(permutation_space)
+    arbitrary_contrib, multi_scores, is_timeseries = _get_contribution_type(contributions)
 
     if multi_scores:
         scores = list(arbitrary_contrib.keys())
@@ -301,14 +303,14 @@ def make_shapley_values(*,
 @typechecked
 def interface(*,
               n_permutations: int,
-              n_parallel_games: int = -1,
               elements: list,
               objective_function: Callable,
-              objective_function_params: Optional[Dict] = None,
+              objective_function_params: Dict = {},
               permutation_space: Optional[list] = None,
               multiprocessing_method: str = 'joblib',
               rng: Optional[np.random.Generator] = None,
               random_seed: Optional[int] = None,
+              n_parallel_games: int = -1,
               ) -> Tuple[pd.DataFrame, Dict, Dict]:
     """
     A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
@@ -316,11 +318,6 @@ def interface(*,
     Args:
         n_permutations (int):
             Number of permutations (samples) per element.
-
-        n_parallel_games (int):
-            Number of parallel jobs (number of to-be-occupied cores),
-            -1 means all CPU cores and 1 means a serial process.
-            I suggest using 1 for debugging since things gets messy in parallel!
 
         elements (list):
             List of the players (elements). Can be strings (names), integers (indicies), and tuples.
@@ -348,7 +345,7 @@ def interface(*,
                     lesioned.remove_nodes_from(complements)
                     return nx.local_efficiency(lesioned)
 
-        objective_function_params (Optional[Dict]):
+        objective_function_params (Dict):
            Kwargs for the objective_function.
 
         permutation_space (Optional[list]):
@@ -378,6 +375,11 @@ def interface(*,
         random_seed (Optional[int]):
             sets the random seed of the sampling process. Only used when `rng` is None. Default is None.
 
+        n_parallel_games (int):
+            Number of parallel jobs (number of to-be-occupied cores),
+            -1 means all CPU cores and 1 means a serial process.
+            I suggest using 1 for debugging since things get messy in parallel!
+
     Returns:
         Tuple[pd.DataFrame, Dict, Dict]: shapley_table, contributions, lesion_effects
 
@@ -386,7 +388,6 @@ def interface(*,
     effect of removing AC=x. So the same values are addressed differently in the two returned Dicts.
     Of course, it makes more sense to compare the lesion effects with the intact system but who am I to judge.
     """
-    of_params = objective_function_params if objective_function_params else {}
 
     if not rng:
         rng = np.random.default_rng(random_seed) if random_seed else np.random.default_rng()
@@ -408,7 +409,7 @@ def interface(*,
                                                            complement_space=complement_space,
                                                            combination_space=combination_space,
                                                            objective_function=objective_function,
-                                                           objective_function_params=of_params)
+                                                           objective_function_params=objective_function_params)
     else:
         contributions, lesion_effects = ut.parallelized_take_contributions(
             multiprocessing_method=multiprocessing_method,
@@ -416,7 +417,7 @@ def interface(*,
             complement_space=complement_space,
             combination_space=combination_space,
             objective_function=objective_function,
-            objective_function_params=of_params)
+            objective_function_params=objective_function_params)
 
     shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)
     return shapley_values, contributions, lesion_effects
@@ -544,7 +545,7 @@ def estimate_causal_influences(elements: list,
             objective_function=objective_function,
             objective_function_params=objective_function_params)
 
-        _, multi_scores, is_timeseries = _check_contribution_type(
+        _, multi_scores, is_timeseries = _get_contribution_type(
             contributions)
 
         # Calculates the good-old Shapley values for the source nodes
@@ -563,23 +564,6 @@ def estimate_causal_influences(elements: list,
     causal_influences = pd.concat(shapley_values, keys=elements)
     return causal_influences.swaplevel().sort_index(level=0) if multi_scores else causal_influences
 
-@typechecked
-def _is_iterable(obj: object) -> bool:
-    """Checks if the object passed is an iterable. Uses ducktyping.
-
-    Args:
-        obj (object): 
-
-    Returns:
-        bool: returns True if object is iterable
-    """
-    try:
-        iter(obj)
-    except Exception:
-        return False
-    else:
-        return True
-
 
 @typechecked
 def _process_timeseries_shapley(shapley_values: pd.DataFrame) -> pd.DataFrame:
@@ -597,10 +581,3 @@ def _process_timeseries_shapley(shapley_values: pd.DataFrame) -> pd.DataFrame:
 
     return shapley_values
 
-
-@typechecked
-def _check_contribution_type(contributions: dict) -> Tuple[Union[dict, float, np.ndarray], bool, bool]:
-    arbitrary_contrib = next(iter(contributions.values()))
-    multi_scores = isinstance(arbitrary_contrib, dict)
-    is_timeseries = _is_iterable(arbitrary_contrib) and (not multi_scores)
-    return arbitrary_contrib, multi_scores, is_timeseries
