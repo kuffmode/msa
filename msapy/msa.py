@@ -528,29 +528,17 @@ def estimate_causal_influences(elements: list,
         # Takes the target out of the to_be_lesioned list
         without_target = set(elements).difference({element})
 
-        # Generates N permutations and their respective combinations/complements of the network without the target.
-        permutations = make_permutation_space(n_permutations=n_permutations,
-                                              elements=list(without_target),
-                                              random_seed=permutation_seed)
-        combinations = make_combination_space(permutation_space=permutations)
-        complements = make_complement_space(combination_space=combinations,
-                                            elements=list(without_target))
-
-        # Plays the game for each lesion combination
-        contributions, _ = ut.parallelized_take_contributions(
-            multiprocessing_method=multiprocessing_method,
-            n_cores=n_cores,
-            complement_space=complements,
-            combination_space=combinations,
-            objective_function=objective_function,
-            objective_function_params=objective_function_params)
+        shapley_value, contributions, _ = interface(n_permutations=n_permutations,
+                                                     elements=list(
+                                                         without_target),
+                                                     objective_function=objective_function,
+                                                     objective_function_params=objective_function_params,
+                                                     n_parallel_games=n_cores,
+                                                     multiprocessing_method=multiprocessing_method,
+                                                     random_seed=permutation_seed)
 
         _, multi_scores, is_timeseries = _get_contribution_type(
             contributions)
-
-        # Calculates the good-old Shapley values for the source nodes
-        shapley_value = make_shapley_values(
-            contributions=contributions, permutation_space=permutations).sort_index(axis=1)
 
         if multi_scores:
             shapley_value = shapley_value.groupby(level=0).mean()
