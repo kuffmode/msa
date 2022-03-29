@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from ordered_set import OrderedSet
 from typeguard import typechecked
+from tqdm import tqdm
 
 from msapy import utils as ut
 from msapy.checks import _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type
@@ -227,7 +228,7 @@ def take_contributions(*,
                       stacklevel=2)
     # ------------------------------#
 
-    for combination in combination_space:
+    for combination in tqdm(combination_space):
         complement = tuple(elements.difference(combination))  # lesion everything but the target coalition
         result = objective_function(complement, **objective_function_params)
 
