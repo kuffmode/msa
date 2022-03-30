@@ -43,5 +43,7 @@ def test_others():
 def test_num_combinations():
     assert len(contributions) == 2 ** 3
 
+
 def test_d_index():
-    assert ut.distribution_of_processing(shapley_vector=shapley_table.mean()) == 0
+    assert ut.distribution_of_processing(
+        shapley_vector=shapley_table.mean()) == 0

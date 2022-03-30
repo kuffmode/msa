@@ -32,4 +32,5 @@ expected_contributions = {("score_1", "a"): 1, ("score_2", "a"): 0,
 
 @pytest.mark.parametrize("score, element", list(expected_contributions.keys()))
 def test_contributions(score, element):
-    assert shapley_table.loc[score][element].mean() == expected_contributions[(score, element)]
+    assert shapley_table.loc[score][element].mean(
+    ) == expected_contributions[(score, element)]
