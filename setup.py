@@ -19,7 +19,7 @@ base_packages = ["pandas~=1.3.3",
 test_packages = ["pytest~=6.2.5"]
 
 setup(name="msapy",
-      version="0.0.2.3",
+      version="1.0.0",
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,
       long_description_content_type='text/markdown',
