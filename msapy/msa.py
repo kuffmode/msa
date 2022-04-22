@@ -1,3 +1,4 @@
+from functools import partial
 import warnings
 from typing import Callable, Optional, Dict, Tuple, Union
 import numpy as np
@@ -422,6 +423,131 @@ def interface(*,
 
     shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)[elements]
     return shapley_values, contributions, lesion_effects
+
+
+@typechecked
+def interface_2d(*,
+                 n_permutations: int,
+                 elements: list,
+                 pair: tuple,
+                 objective_function: Callable,
+                 objective_function_params: Dict = {},
+                 multiprocessing_method: str = 'joblib',
+                 rng: Optional[np.random.Generator] = None,
+                 random_seed: Optional[int] = None,
+                 n_parallel_games: int = -1,
+                 ) -> Tuple:
+    """Performs Two dimensional MSA as explain in section 2.3 of [1]. 
+    We calculate the Shapley value of element i in the subgame of all elements without element j. 
+    Intuitively, this is the average marginal importance of element i when element j is perturbed. 
+    Repeat the process by interchanging i and j and the calculate the shapley values by considering 
+    i and j as a single unit.
+
+    REFERENCES:
+        Keinan, Alon, et al. "Fair attribution of functional contribution in artificial and biological networks." 
+        Neural computation 16.9 (2004): 1887-1915.
+
+    Args:
+        n_permutations (int): Number of permutations (samples) per element.
+
+        elements (list): List of the players (elements). Can be strings (names), integers (indicies), and tuples.
+
+        pair (tuple): the pair of elements we want to analyze the interaction between
+
+        objective_function (Callable): TODO: change example
+                the game (in-silico experiment). It should get the complement set and return one numeric value
+                either int or float.
+                This function is just calling it as: objective_function(complement, **objective_function_params)
+
+                An example using networkx with some tips:
+                (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
+
+                >>>     def linear_score_function(complements, lesioned_element=None, paired_element = None):
+                >>>         if lesioned_element:
+                >>>             complements = (*complements, lesioned_element)
+                >>>         if (5 not in complements) and (15 not in complements):
+                >>>             return data.sum(0) - data[complements, :].sum(0) + 5*(data[5] + data[15])
+                >>>         if paired_element:
+                >>>             complements = (*complements, paired_element)
+                >>>         return data.sum(0) - data[complements, :].sum(0)
+
+        objective_function_params (Dict, optional): Kwargs for the objective_function. Defaults to {}.
+
+        multiprocessing_method (str, optional): 
+            So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+            documentations to see how to go for it. I guess ray works better on HPC clusters (if they support it tho!)
+            and probably doesn't suffer from the sneaky "memory leakage" of joblib. But just by playing around,
+            I realized joblib is faster for tasks that are small themselves. Remedies are here:
+            https://docs.ray.io/en/latest/auto_examples/tips-for-first-time.html
+
+            Note: Generally, multiprocessing isn't always faster as explained above. Use it when the function itself
+            takes some like each game takes longer than 0.5 seconds or so. For example, a function that sleeps for a
+            second on a set of 10 elements with 1000 permutations each (1024 games) performs as follows:
+
+                - no parallel: 1020 sec
+                - joblib: 63 sec
+                - ray: 65 sec
+
+            That makes sense since I have 16 cores and 1000/16 is around 62. 
+            Defaults to 'joblib'.
+
+        rng (Optional[np.random.Generator], optional): Numpy random generator object used for reproducable results. Default is None. Defaults to None.
+
+        random_seed (Optional[int], optional): 
+            sets the random seed of the sampling process. Only used when `rng` is None. Default is None. Defaults to None.
+
+        n_parallel_games (int):
+            Number of parallel jobs (number of to-be-occupied cores),
+            -1 means all CPU cores and 1 means a serial process.
+            I suggest using 1 for debugging since things get messy in parallel!
+
+    Returns:
+        tuple: 
+            (shapley value of element (i, j), 
+            shapley value of element i when j is lesioned, 
+            shapley value of element j when i is lesioned) 
+    """
+
+    interface_args = {"n_permutations": n_permutations,
+                      "objective_function_params": objective_function_params,
+                      "multiprocessing_method": multiprocessing_method,
+                      "rng": rng,
+                      "random_seed": random_seed,
+                      "n_parallel_games": n_parallel_games}
+
+    shapley_A, _, _ = interface(elements=[e for e in elements if e != pair[1]],
+                                objective_function=partial(
+                                    objective_function, lesioned_element=pair[1]),
+                                **interface_args
+                                )
+    gamma_A = _get_gamma(shapley_A, pair, 0)
+
+    shapley_B, _, _ = interface(elements=[e for e in elements if e != pair[0]],
+                                objective_function=partial(
+                                    objective_function, lesioned_element=pair[0]),
+                                **interface_args
+                                )
+    gamma_B = _get_gamma(shapley_B, pair, 1)
+
+    shapley_AB, _, _ = interface(elements=[e for e in elements if e != pair[0]],
+                                 objective_function=partial(
+                                     objective_function, paired_element=pair[0]),
+                                 **interface_args
+                                 )
+    gamma_AB = _get_gamma(shapley_AB, pair, 1)
+
+    return gamma_AB, gamma_A, gamma_B
+
+
+def _get_gamma(shapley_table, pair, idx):
+    if shapley_table.index.nlevels == 1:
+        gamma = shapley_table[pair[idx]].mean()
+    elif "timestamp" in shapley_table.index.names:
+        gamma = shapley_table[pair[idx]].groupby(level=1).mean()
+    else:
+        gamma = shapley_table[pair[idx]].groupby(level=0).mean()
+    return gamma
 
 
 @typechecked
