@@ -17,7 +17,7 @@ def _check_valid_permutation_space(permutation_space: list):
 
 
 def _check_valid_elements(elements: list):
-    if len(elements) < 3:
+    if len(elements) < 2:
         raise ValueError(
             "The number of elements should be at least 3 to perform MSA")
 
