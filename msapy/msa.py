@@ -1,20 +1,21 @@
-from functools import partial
 import warnings
 from typing import Callable, Optional, Dict, Tuple, Union
 import numpy as np
 import pandas as pd
 from ordered_set import OrderedSet
+from itertools import combinations
 from typeguard import typechecked
 from tqdm import tqdm
 
 from msapy import utils as ut
-from msapy.checks import _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type
+from msapy.checks import _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
 
 
 @typechecked
 def make_permutation_space(*,
                            elements: list,
                            n_permutations: int,
+                           pair: Optional[Tuple] = None,
                            rng: Optional[np.random.Generator] = None,
                            random_seed: Optional[int] = None) -> list:
     """
@@ -45,6 +46,9 @@ def make_permutation_space(*,
             Number of permutations, Didn't check it systematically yet but just based on random explorations I'd say
             something around 1_000 is enough.
 
+        pair (Optional[Tuple]):
+            pair of elements that will always be together in every permutation
+
         rng (Optional[np.random.Generator]): Numpy random generator object used for reproducable results. Default is None.
 
         random_seed (Optional[int]):
@@ -59,14 +63,26 @@ def make_permutation_space(*,
     _check_valid_n_permutations(n_permutations)
     # ------------------------------#
     if not rng:
-        rng = np.random.default_rng(random_seed) if random_seed else np.random.default_rng()
+        rng = np.random.default_rng(random_seed) if random_seed \
+            else np.random.default_rng()
+    if not pair:
+        permutation_space = [tuple(rng.permutation(elements))
+                             for _ in range(n_permutations)]
+        return permutation_space
 
-    permutation_space = [tuple(rng.permutation(elements)) for _ in range(n_permutations)]
+    elements = [e for e in elements if e != pair[0]]
+    permutation_space = []
+
+    for _ in range(n_permutations):
+        permutation = list(rng.permutation(elements))
+        permutation.insert(permutation.index(pair[1]), pair[0])
+        permutation_space.append(tuple(permutation))
+
     return permutation_space
 
 
 @typechecked
-def make_combination_space(*, permutation_space: list) -> OrderedSet:
+def make_combination_space(*, permutation_space: list, pair: Optional[Tuple] = None, lesioned: Optional[any] = None) -> OrderedSet:
     """
     Generates a dataset (OrderedSet) of coalitions from the permutation_space.
     In principle, this could be directly filled and passed to the make_shapley_values function
@@ -90,26 +106,40 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
         permutation_space (list):
             A list of players to be shuffled n times.
 
+        pair (Optional[Tuple]):
+            pair of elements that will always be together in every combination
+
+        lesioned (Optional[any]):
+            leseioned element that will not be present in any combination
+
     Returns:
         (OrderedSet): Combination space as an OrderedSet of frozensets.
     """
 
     _check_valid_permutation_space(permutation_space)
 
+    lesioned = set(lesioned) if lesioned else set()
+
     combination_space = OrderedSet()
+
     for permutation in permutation_space:
+        skip_next = False
+        # we really don't care about the element itself here
+        for index, element in enumerate(permutation):
+            if skip_next:
+                skip_next = False
+                continue
+            if pair and element == pair[0]:
+                index += 1
+                skip_next = True
 
-        for index, _ in enumerate(permutation):  # we really don't care about the element itself here
+            # forming the coalition with the target element
+            including = frozenset(permutation[:index + 1]) - lesioned
+            # forming it without the target element
+            excluding = frozenset(permutation[:index]) - lesioned
 
-            including = frozenset(permutation[:index + 1])  # forming the coalition with the target element
-            excluding = frozenset(permutation[:index])  # forming it without the target element
-
-            # It's possible to end up with the same coalitions many times so:
-            if including not in combination_space:
-                combination_space.add(including)
-
-            if excluding not in combination_space:
-                combination_space.add(excluding)
+            combination_space.add(including)
+            combination_space.add(excluding)
 
     return combination_space
 
@@ -117,7 +147,8 @@ def make_combination_space(*, permutation_space: list) -> OrderedSet:
 @typechecked
 def make_complement_space(*,
                           combination_space: OrderedSet,
-                          elements: list) -> OrderedSet:
+                          elements: list,
+                          lesioned: Optional[any] = None) -> OrderedSet:
     """
     Produces the complement space of the combination space, useful for debugging
     and the multiprocessing function.
@@ -126,6 +157,8 @@ def make_complement_space(*,
             ordered set of target combinations (coalitions).
         elements (list):
             list of players.
+        lesioned (Optional[any]):
+            leseioned element that will not be present in any combination but every complement
 
     Returns:
         (OrderedSet): complements to be passed for lesioning.
@@ -133,7 +166,8 @@ def make_complement_space(*,
     _check_valid_elements(elements)
 
     elements = frozenset(elements)
-    diff = combination_space.items[len(elements)] ^ elements
+    diff = max(combination_space, key=len) ^ elements - \
+        {lesioned if lesioned else None}
 
     # ------------------------------#
     if len(diff) != 0:
@@ -230,7 +264,8 @@ def take_contributions(*,
     # ------------------------------#
 
     for combination in tqdm(combination_space):
-        complement = tuple(elements.difference(combination))  # lesion everything but the target coalition
+        # lesion everything but the target coalition
+        complement = tuple(elements.difference(combination))
         result = objective_function(complement, **objective_function_params)
 
         contributions[combination] = result
@@ -241,7 +276,9 @@ def take_contributions(*,
 @typechecked
 def make_shapley_values(*,
                         contributions: Dict,
-                        permutation_space: list) -> pd.DataFrame:
+                        permutation_space: list,
+                        pair: Optional[Tuple] = None,
+                        lesioned: Optional[any] = None) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
     Briefly, for a permutation (A,B,C) it will be:
@@ -260,6 +297,12 @@ def make_shapley_values(*,
         permutation_space (list):
             Should be the same passed to make_combination_space.
 
+        pair (Optional[Tuple]):
+            pair of elements that will always be together in every combination
+
+        lesioned (Optional[any]):
+            leseioned element that will not be present in any combination
+
     Returns:
         pd.DataFrame: Shapley table or a dict of Shapely tables, columns will be 
         elements and indices will be samples (permutations). 
@@ -273,19 +316,31 @@ def make_shapley_values(*,
 
     if multi_scores:
         scores = list(arbitrary_contrib.keys())
-        contributions = {k: np.array(list(v.values())) for k, v in contributions.items()}
+        contributions = {k: np.array(list(v.values()))
+                         for k, v in contributions.items()}
 
+    lesioned = set(lesioned) if lesioned else set()
     shapley_table = {}
     for permutation in permutation_space:
+        skip_next = False
         isolated_contributions = []  # got to be a better way!
 
         # if the set is small it's possible that the permutation space exhausts the combination space so:
-        if permutation not in shapley_table:
-            for index, element in enumerate(permutation):
-                including = frozenset(permutation[:index + 1])
-                excluding = frozenset(permutation[:index])
-                isolated_contributions.append(contributions[including] - contributions[excluding])
-            shapley_table[permutation] = np.array(isolated_contributions)
+        if permutation in shapley_table:
+            continue
+        for index, element in enumerate(permutation):
+            if skip_next:
+                skip_next = False
+                continue
+            if pair and element == pair[0]:
+                index += 1
+                skip_next = True
+
+            including = frozenset(permutation[:index + 1]) - lesioned
+            excluding = frozenset(permutation[:index]) - lesioned
+            isolated_contributions.append(
+                contributions[including] - contributions[excluding])
+        shapley_table[permutation] = np.array(isolated_contributions)
 
     if not multi_scores:
         shapley_values = pd.DataFrame([
@@ -309,6 +364,8 @@ def interface(*,
               objective_function: Callable,
               objective_function_params: Dict = {},
               permutation_space: Optional[list] = None,
+              pair: Optional[Tuple] = None,
+              lesioned: Optional[any] = None,
               multiprocessing_method: str = 'joblib',
               rng: Optional[np.random.Generator] = None,
               random_seed: Optional[int] = None,
@@ -353,6 +410,12 @@ def interface(*,
         permutation_space (Optional[list]):
             Already generated permutation space, in case you want to be more reproducible or something and use the same
             lesion combinations for many metrics.
+        
+        pair (Optional[Tuple]):
+            pair of elements that will always be together in every combination
+
+        lesioned (Optional[any]):
+            leseioned element that will not be present in any combination
 
         multiprocessing_method (str):
             So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
@@ -397,14 +460,17 @@ def interface(*,
     if not permutation_space:
         permutation_space = make_permutation_space(elements=elements,
                                                    n_permutations=n_permutations,
+                                                   pair=pair,
                                                    rng=rng)
     else:
         warnings.warn("A Permutation space is given so n_permutations will fall back to what's specified there.",
                       stacklevel=2)
 
-    combination_space = make_combination_space(permutation_space=permutation_space)
+    combination_space = make_combination_space(
+        permutation_space=permutation_space, pair=pair, lesioned=lesioned)
     complement_space = make_complement_space(combination_space=combination_space,
-                                             elements=elements)
+                                             elements=elements,
+                                             lesioned=lesioned)
 
     if n_parallel_games == 1:
         contributions, lesion_effects = take_contributions(elements=elements,
@@ -421,22 +487,24 @@ def interface(*,
             objective_function=objective_function,
             objective_function_params=objective_function_params)
 
-    shapley_values = make_shapley_values(contributions=contributions, permutation_space=permutation_space)[elements]
+    shapley_values = make_shapley_values(contributions=contributions,
+                                         permutation_space=permutation_space,
+                                         lesioned=lesioned)[elements]
     return shapley_values, contributions, lesion_effects
 
 
 @typechecked
-def interface_2d(*,
-                 n_permutations: int,
-                 elements: list,
-                 pair: tuple,
-                 objective_function: Callable,
-                 objective_function_params: Dict = {},
-                 multiprocessing_method: str = 'joblib',
-                 rng: Optional[np.random.Generator] = None,
-                 random_seed: Optional[int] = None,
-                 n_parallel_games: int = -1,
-                 ) -> Tuple:
+def interaction_2d(*,
+                   n_permutations: int,
+                   elements: list,
+                   pair: tuple,
+                   objective_function: Callable,
+                   objective_function_params: Dict = {},
+                   multiprocessing_method: str = 'joblib',
+                   rng: Optional[np.random.Generator] = None,
+                   random_seed: Optional[int] = None,
+                   n_parallel_games: int = -1,
+                   ) -> Tuple:
     """Performs Two dimensional MSA as explain in section 2.3 of [1]. 
     We calculate the Shapley value of element i in the subgame of all elements without element j. 
     Intuitively, this is the average marginal importance of element i when element j is perturbed. 
@@ -454,22 +522,28 @@ def interface_2d(*,
 
         pair (tuple): the pair of elements we want to analyze the interaction between
 
-        objective_function (Callable): TODO: change example
-                the game (in-silico experiment). It should get the complement set and return one numeric value
-                either int or float.
-                This function is just calling it as: objective_function(complement, **objective_function_params)
+        objective_function (Callable):
+            The game (in-silico experiment). It should get the complement set and return one numeric value
+            either int or float.
+            This function is just calling it as: objective_function(complement, **objective_function_params)
 
-                An example using networkx with some tips:
-                (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
+            An example using networkx with some tips:
+            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
 
-                >>>     def linear_score_function(complements, lesioned_element=None, paired_element = None):
-                >>>         if lesioned_element:
-                >>>             complements = (*complements, lesioned_element)
-                >>>         if (5 not in complements) and (15 not in complements):
-                >>>             return data.sum(0) - data[complements, :].sum(0) + 5*(data[5] + data[15])
-                >>>         if paired_element:
-                >>>             complements = (*complements, paired_element)
-                >>>         return data.sum(0) - data[complements, :].sum(0)
+            def local_efficiency(complements, graph):
+                if len(complements) < 0:
+                    # the network is intact so:
+                    return nx.local_efficiency(graph)
+
+                elif len(complements) == len(graph):
+                    # the network is fully lesioned so:
+                    return 0.0
+
+                else:
+                    # lesion the system, calculate things
+                    lesioned = graph.copy()
+                    lesioned.remove_nodes_from(complements)
+                    return nx.local_efficiency(lesioned)
 
         objective_function_params (Dict, optional): Kwargs for the objective_function. Defaults to {}.
 
@@ -509,44 +583,143 @@ def interface_2d(*,
             shapley value of element j when i is lesioned) 
     """
 
-    interface_args = {"n_permutations": n_permutations,
+    interface_args = {"elements": elements,
+                      "objective_function": objective_function,
+                      "n_permutations": n_permutations,
                       "objective_function_params": objective_function_params,
                       "multiprocessing_method": multiprocessing_method,
                       "rng": rng,
                       "random_seed": random_seed,
                       "n_parallel_games": n_parallel_games}
 
-    shapley_A, _, _ = interface(elements=[e for e in elements if e != pair[1]],
-                                objective_function=partial(
-                                    objective_function, lesioned_element=pair[1]),
-                                **interface_args
-                                )
-    gamma_A = _get_gamma(shapley_A, pair, 0)
+    shapley_A, _, _ = interface(**interface_args, lesioned=pair[1])
+    gamma_A = _get_gamma(shapley_A, pair[0]).sum()
 
-    shapley_B, _, _ = interface(elements=[e for e in elements if e != pair[0]],
-                                objective_function=partial(
-                                    objective_function, lesioned_element=pair[0]),
-                                **interface_args
-                                )
-    gamma_B = _get_gamma(shapley_B, pair, 1)
+    shapley_B, _, _ = interface(**interface_args, lesioned=pair[0])
+    gamma_B = _get_gamma(shapley_B, pair[1]).sum()
 
-    shapley_AB, _, _ = interface(elements=[e for e in elements if e != pair[0]],
-                                 objective_function=partial(
-                                     objective_function, paired_element=pair[0]),
-                                 **interface_args
-                                 )
-    gamma_AB = _get_gamma(shapley_AB, pair, 1)
+    shapley_AB, _, _ = interface(**interface_args, pair=pair)
+    gamma_AB = _get_gamma(shapley_AB, pair).sum()
 
     return gamma_AB, gamma_A, gamma_B
 
 
-def _get_gamma(shapley_table, pair, idx):
+@typechecked
+def network_interaction_2d(*,
+                           n_permutations: int,
+                           elements: list,
+                           pairs: Optional[list] = None,
+                           objective_function: Callable,
+                           objective_function_params: Dict = {},
+                           multiprocessing_method: str = 'joblib',
+                           rng: Optional[np.random.Generator] = None,
+                           random_seed: Optional[int] = None,
+                           n_parallel_games: int = -1,
+                           ) -> np.ndarray:
+    """Performs Two dimensional MSA as explain in section 2.3 of [1]
+    for every possible pair of elements and returns a symmetric matrix of
+    interactions between the elements.
+
+    Args:
+        Args:
+        n_permutations (int): Number of permutations (samples) per element.
+
+        elements (list): List of the players (elements). Can be strings (names), integers (indicies), and tuples.
+
+        objective_function (Callable):
+            The game (in-silico experiment). It should get the complement set and return one numeric value
+            either int or float.
+            This function is just calling it as: objective_function(complement, **objective_function_params)
+
+            An example using networkx with some tips:
+            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
+
+            def local_efficiency(complements, graph):
+                if len(complements) < 0:
+                    # the network is intact so:
+                    return nx.local_efficiency(graph)
+
+                elif len(complements) == len(graph):
+                    # the network is fully lesioned so:
+                    return 0.0
+
+                else:
+                    # lesion the system, calculate things
+                    lesioned = graph.copy()
+                    lesioned.remove_nodes_from(complements)
+                    return nx.local_efficiency(lesioned)
+
+        objective_function_params (Dict, optional): Kwargs for the objective_function. Defaults to {}.
+
+        multiprocessing_method (str, optional): 
+            So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+            documentations to see how to go for it. I guess ray works better on HPC clusters (if they support it tho!)
+            and probably doesn't suffer from the sneaky "memory leakage" of joblib. But just by playing around,
+            I realized joblib is faster for tasks that are small themselves. Remedies are here:
+            https://docs.ray.io/en/latest/auto_examples/tips-for-first-time.html
+
+            Note: Generally, multiprocessing isn't always faster as explained above. Use it when the function itself
+            takes some like each game takes longer than 0.5 seconds or so. For example, a function that sleeps for a
+            second on a set of 10 elements with 1000 permutations each (1024 games) performs as follows:
+
+                - no parallel: 1020 sec
+                - joblib: 63 sec
+                - ray: 65 sec
+
+            That makes sense since I have 16 cores and 1000/16 is around 62. 
+            Defaults to 'joblib'.
+
+        rng (Optional[np.random.Generator], optional): Numpy random generator object used for reproducable results. Default is None. Defaults to None.
+
+        random_seed (Optional[int], optional): 
+            sets the random seed of the sampling process. Only used when `rng` is None. Default is None. Defaults to None.
+
+        n_parallel_games (int):
+            Number of parallel jobs (number of to-be-occupied cores),
+            -1 means all CPU cores and 1 means a serial process.
+            I suggest using 1 for debugging since things get messy in parallel!
+
+
+    Raises:
+        NotImplementedError: Raises this error in case the contribution is a timeseries or there are
+        multiple contributions
+
+    Returns:
+        np.ndarray: the interaction matrix
+    """
+    elements_idx = list(range(len(elements)))
+    all_pairs = [(elements.index(x), elements.index(y)) for x, y in pairs] if pairs else combinations(elements_idx, 2)
+
+    interface_args = {"elements": elements,
+                      "n_permutations": n_permutations,
+                      "objective_function_params": objective_function_params,
+                      "objective_function": objective_function,
+                      "multiprocessing_method": multiprocessing_method,
+                      "rng": rng,
+                      "random_seed": random_seed,
+                      "n_parallel_games": n_parallel_games}
+
+    interactions = np.zeros((len(elements), len(elements)))
+
+    for x, y in tqdm(all_pairs, desc="Running interface 2d for all pair of nodes:"):
+        gammaAB, gammaA, gammaB = interaction_2d(pair=(elements[x], elements[y]),
+                                                 **interface_args)
+        if not _is_number(gammaAB):
+            raise NotImplementedError("`network_interaction_2d` does not work with"
+                                      " timeseries or multiscore contributions yet.")
+        interactions[x, y] = interactions[y, x] = gammaAB - gammaA - gammaB
+
+    return interactions
+
+
+def _get_gamma(shapley_table, idx):
     if shapley_table.index.nlevels == 1:
-        gamma = shapley_table[pair[idx]].mean()
+        gamma = shapley_table[list(idx)].mean()
     elif "timestamp" in shapley_table.index.names:
-        gamma = shapley_table[pair[idx]].groupby(level=1).mean()
+        gamma = shapley_table[list(idx)].groupby(level=1).mean()
     else:
-        gamma = shapley_table[pair[idx]].groupby(level=0).mean()
+        gamma = shapley_table[list(idx)].groupby(level=0).mean()
     return gamma
 
 
@@ -657,13 +830,12 @@ def estimate_causal_influences(elements: list,
         without_target = set(elements).difference({element})
 
         shapley_value, contributions, _ = interface(n_permutations=n_permutations,
-                                                     elements=list(
-                                                         without_target),
-                                                     objective_function=objective_function,
-                                                     objective_function_params=objective_function_params,
-                                                     n_parallel_games=n_cores,
-                                                     multiprocessing_method=multiprocessing_method,
-                                                     random_seed=permutation_seed)
+                                                    elements=list(without_target),
+                                                    objective_function=objective_function,
+                                                    objective_function_params=objective_function_params,
+                                                    n_parallel_games=n_cores,
+                                                    multiprocessing_method=multiprocessing_method,
+                                                    random_seed=permutation_seed)
 
         _, multi_scores, is_timeseries = _get_contribution_type(
             contributions)
@@ -697,4 +869,3 @@ def _process_timeseries_shapley(shapley_values: pd.DataFrame) -> pd.DataFrame:
                                   )
 
     return shapley_values
-
