@@ -68,4 +68,21 @@ def test_interaction_2d():
         n_parallel_games=1)
     expected_interactions = np.array([[0, 87, 0, 0, 0], [87, 0, 0, 0, 0],
                                       [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]])
-    assert np.allclose(expected_interactions, interactions)
+    assert np.allclose(expected_interactions, interactions, atol=1e-3)
+
+
+def test_estimate_causal_influence():
+    true_causal_influences = np.random.normal(0, 5, (4, 4))
+    np.fill_diagonal(true_causal_influences, 0)
+
+    def objective_function_causal_influence(complements, index):
+        return true_causal_influences[index].sum() - true_causal_influences[index, complements].sum()
+
+    calculated_causal_influences = msa.estimate_causal_influences(elements=list(range(4)),
+                                                                  n_permutations=1000,
+                                                                  objective_function=objective_function_causal_influence,
+                                                                  n_cores=1).values
+
+    np.fill_diagonal(calculated_causal_influences, 0)
+
+    assert np.allclose(calculated_causal_influences, true_causal_influences)

@@ -734,7 +734,7 @@ def estimate_causal_influences(elements: list,
                                ) -> pd.DataFrame:
     """
     Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function
-    performs MSA iteratively on each node and tracks the changes in the objective_function of the taret node.
+    performs MSA iteratively on each node and tracks the changes in the objective_function of the target node.
     For example we have a chain A -> B -> C, and we want to know how much A and B are contributing to C. We first need to
     define a metric for C (objective_function) which here let's say is the average activity of C. MSA then performs a
     multi-site lesioning analysis of A and B so for each we will end up with a number indicating their contributions to

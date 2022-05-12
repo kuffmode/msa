@@ -39,7 +39,7 @@ def _check_valid_n_permutations(n_permutations):
 
 
 @typechecked
-def _get_contribution_type(contributions: dict) -> Tuple[Union[dict, float, np.ndarray], bool, bool]:
+def _get_contribution_type(contributions: dict) -> Tuple[Union[dict, np.number, Number, np.ndarray], bool, bool]:
 
     if not _is_homogeneous_list(list(contributions.values())):
         raise ValueError(
