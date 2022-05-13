@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 DESCRIPTION = "Multi-perturbation Shapley value Analysis (MSA)"
-with open("README.md", encoding="utf-8") as f:
+with open("docs/README.md", encoding="utf-8") as f:
     LONG_DESCRIPTION = f.read()
 
 base_packages = ["pandas~=1.3.3",
@@ -19,12 +19,12 @@ base_packages = ["pandas~=1.3.3",
 test_packages = ["pytest~=6.2.5"]
 
 setup(name="msapy",
-      version="0.0.2.3",
+      version="1.0.0",
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,
       long_description_content_type='text/markdown',
-      author='Kayson Fakhar',
-      author_email='kayson.fakhar@gmail.com',
+      author='Kayson Fakhar, Shrey Dixit',
+      author_email='kayson.fakhar@gmail.com, shrey.akshaj@gmail.com',
       url="https://github.com/kuffmode/msa",
       packages=find_packages(),
       classifiers=[
