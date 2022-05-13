@@ -1,4 +1,4 @@
-import math
+import numpy as np
 from msapy import msa, utils as ut
 
 
@@ -11,15 +11,9 @@ def simple(complements, causes):
         return 1
 
 
-def simple_with_interaction(complements, lesioned_element=None, paired_element=None):
-    if lesioned_element:
-        complements = (*complements, lesioned_element)
-
+def simple_with_interaction(complements):
     if ("A" not in complements) and ("B" not in complements):
-        return sum(contrib_dict.values()) - sum(contrib_dict[k] for k in complements) + contrib_dict["A"] + contrib_dict["B"]
-
-    if paired_element:
-        complements = (*complements, paired_element)
+        return sum(contrib_dict.values()) - sum(contrib_dict[k] for k in complements) + 87
 
     return sum(contrib_dict.values()) - sum(contrib_dict[k] for k in complements)
 
@@ -36,12 +30,6 @@ shapley_table, contributions, lesions = msa.interface(
     random_seed=111)
 
 contrib_dict = {"A": 10, "B": 9, "C": 57, "D": -8, "E": 42}
-gamma_AB, gamma_A, gamma_B = msa.interface_2d(
-    elements=list(contrib_dict.keys()),
-    pair=("A", "B"),
-    n_permutations=5000,
-    objective_function=simple_with_interaction,
-    n_parallel_games=1)
 
 # ------------------------------#
 
@@ -72,7 +60,29 @@ def test_d_index():
         shapley_vector=shapley_table.mean()) == 0
 
 
-def test_interface_2d():
-    assert math.isclose(gamma_AB, 38)
-    assert math.isclose(gamma_A, 10)
-    assert math.isclose(gamma_B, 9)
+def test_interaction_2d():
+    interactions = msa.network_interaction_2d(
+        elements=list(contrib_dict.keys()),
+        n_permutations=1000,
+        objective_function=simple_with_interaction,
+        n_parallel_games=1)
+    expected_interactions = np.array([[0, 87, 0, 0, 0], [87, 0, 0, 0, 0],
+                                      [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]])
+    assert np.allclose(expected_interactions, interactions, atol=1e-3)
+
+
+def test_estimate_causal_influence():
+    true_causal_influences = np.random.normal(0, 5, (4, 4))
+    np.fill_diagonal(true_causal_influences, 0)
+
+    def objective_function_causal_influence(complements, index):
+        return true_causal_influences[index].sum() - true_causal_influences[index, complements].sum()
+
+    calculated_causal_influences = msa.estimate_causal_influences(elements=list(range(4)),
+                                                                  n_permutations=1000,
+                                                                  objective_function=objective_function_causal_influence,
+                                                                  n_cores=1).values
+
+    np.fill_diagonal(calculated_causal_influences, 0)
+
+    assert np.allclose(calculated_causal_influences, true_causal_influences)
