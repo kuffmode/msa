@@ -1,9 +1,11 @@
 import warnings
 from typing import Callable, Optional, Dict, Tuple, Union
+from joblib import Parallel, delayed
 import numpy as np
 import pandas as pd
 from ordered_set import OrderedSet
 from itertools import combinations
+import ray
 from typeguard import typechecked
 from tqdm import tqdm
 
@@ -312,7 +314,8 @@ def make_shapley_values(*,
         The index at `level=1` will be the timestamps
     """
     _check_valid_permutation_space(permutation_space)
-    arbitrary_contrib, multi_scores, is_timeseries = _get_contribution_type(contributions)
+    arbitrary_contrib, multi_scores, is_timeseries = _get_contribution_type(
+        contributions)
 
     if multi_scores:
         scores = list(arbitrary_contrib.keys())
@@ -352,7 +355,8 @@ def make_shapley_values(*,
         shapley_values.append(pd.DataFrame([
             dict(zip(permutations, shapleys[:, i])) for permutations, shapleys in shapley_table.items()]))
 
-    shapley_values = pd.concat(shapley_values, keys=scores) if multi_scores else shapley_values
+    shapley_values = pd.concat(
+        shapley_values, keys=scores) if multi_scores else shapley_values
 
     return shapley_values
 
@@ -410,7 +414,7 @@ def interface(*,
         permutation_space (Optional[list]):
             Already generated permutation space, in case you want to be more reproducible or something and use the same
             lesion combinations for many metrics.
-        
+
         pair (Optional[Tuple]):
             pair of elements that will always be together in every combination
 
@@ -455,7 +459,8 @@ def interface(*,
     """
 
     if not rng:
-        rng = np.random.default_rng(random_seed) if random_seed else np.random.default_rng()
+        rng = np.random.default_rng(
+            random_seed) if random_seed else np.random.default_rng()
 
     if not permutation_space:
         permutation_space = make_permutation_space(elements=elements,
@@ -689,7 +694,8 @@ def network_interaction_2d(*,
         np.ndarray: the interaction matrix
     """
     elements_idx = list(range(len(elements)))
-    all_pairs = [(elements.index(x), elements.index(y)) for x, y in pairs] if pairs else combinations(elements_idx, 2)
+    all_pairs = [(elements.index(x), elements.index(y))
+                 for x, y in pairs] if pairs else combinations(elements_idx, 2)
 
     interface_args = {"elements": elements,
                       "n_permutations": n_permutations,
@@ -819,39 +825,69 @@ def estimate_causal_influences(elements: list,
     """
     objective_function_params = objective_function_params if objective_function_params else {}
 
-    # Initialize the stuff
-    shapley_values = []
-    # Looping through the nodes
-    for index, element in enumerate(elements):
-        print(f"working on node number {index} from {len(elements)} nodes.")
-        objective_function_params['index'] = index
-
-        # Takes the target out of the to_be_lesioned list
-        without_target = set(elements).difference({element})
-
-        shapley_value, contributions, _ = interface(n_permutations=n_permutations,
-                                                    elements=list(without_target),
-                                                    objective_function=objective_function,
-                                                    objective_function_params=objective_function_params,
-                                                    n_parallel_games=n_cores,
-                                                    multiprocessing_method=multiprocessing_method,
-                                                    random_seed=permutation_seed)
-
-        _, multi_scores, is_timeseries = _get_contribution_type(
-            contributions)
-
-        if multi_scores:
-            shapley_value = shapley_value.groupby(level=0).mean()
-        elif is_timeseries:
-            shapley_value = shapley_value.groupby(level=1).mean()
+    if multiprocessing_method == 'ray':
+        if n_cores <= 0:
+            warnings.warn("A zero or a negative n_cores was passed and ray doesn't like so "
+                          "to fix that ray.init() will get no arguments, "
+                          "which means use all cores as n_cores = -1 does for joblib.", stacklevel=2)
+            ray.init()
         else:
-            shapley_value = shapley_value.mean()
+            ray.init(n_cores)
 
-        shapley_values.append(shapley_value)
+        result_ids = [ray.remote(run_interface_ci).remote(elements, objective_function,
+                                                          objective_function_params, n_permutations,
+                                                          permutation_seed, index, element) for index, element in enumerate(elements)]
+
+        for _ in tqdm(ut.ray_iterator(result_ids), total=len(result_ids)):
+            pass
+
+        results = ray.get(result_ids)
+        ray.shutdown()
+
+    elif multiprocessing_method == 'joblib':
+        results = (Parallel(n_jobs=n_cores)(delayed(run_interface_ci)(elements, objective_function,
+                                                                      objective_function_params, n_permutations,
+                                                                      permutation_seed, index, element) for index, element in tqdm(enumerate(elements))))
+
+    else:
+        results = [run_interface_ci(elements, objective_function,
+                                    objective_function_params, n_permutations,
+                                    permutation_seed, index, element) for index, element in tqdm(enumerate(elements))]
+
+    _, multi_scores, is_timeseries = results[0]
+    shapley_values = [r[0] for r in results]
 
     causal_influences = pd.concat(shapley_values, keys=elements) if (
         multi_scores or is_timeseries) else pd.DataFrame(shapley_values, columns=elements)
     return causal_influences.swaplevel().sort_index(level=0) if multi_scores else causal_influences
+
+
+def run_interface_ci(elements, objective_function,
+                     objective_function_params,
+                     n_permutations, permutation_seed, index, element):
+
+    print(f"working on node number {index} from {len(elements)} nodes.")
+    objective_function_params['index'] = index
+
+    # Takes the target out of the to_be_lesioned list
+    without_target = set(elements).difference({element})
+
+    shapley_value, contributions, _ = interface(n_permutations=n_permutations,
+                                                elements=list(without_target),
+                                                objective_function=objective_function,
+                                                objective_function_params=objective_function_params,
+                                                n_parallel_games=1,
+                                                random_seed=permutation_seed)
+
+    _, multi_scores, is_timeseries = _get_contribution_type(contributions)
+
+    if multi_scores:
+        shapley_value = shapley_value.groupby(level=0).mean()
+    elif is_timeseries:
+        shapley_value = shapley_value.groupby(level=1).mean()
+    else:
+        shapley_value = shapley_value.mean()
+    return shapley_value, multi_scores, is_timeseries
 
 
 @typechecked
