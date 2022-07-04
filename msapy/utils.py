@@ -61,7 +61,7 @@ def parallelized_take_contributions(*,
                 - ray: 65 sec
 
             That makes sense since I have 16 cores and 1000/16 is around 62.
-        # TODO: allow more flexibility in ray method. Scaling up to a cluster?
+            TODO: allow more flexibility in ray method. Scaling up to a cluster?
 
         n_cores (int):
             Number of parallel games. Default is -1, which means all cores so it can make the system
@@ -85,28 +85,28 @@ def parallelized_take_contributions(*,
             An example using networkx with some tips:
             (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
 
-            def local_efficiency(complements, graph):
-                if len(complements) < 0:
-                    # the network is intact so:
-                    return nx.local_efficiency(graph)
-
-                elif len(complements) == len(graph):
-                    # the network is fully lesioned so:
-                    return 0.0
-
-                else:
-                    # lesion the system, calculate things
-                    lesioned = graph.copy()
-                    lesioned.remove_nodes_from(complements)
-                    return nx.local_efficiency(lesioned)
+            >>>     def local_efficiency(complements, graph):
+            >>>         if len(complements) < 0:
+            >>>            # the network is intact so:
+            >>>            return nx.local_efficiency(graph)
+            >>>
+            >>>         elif len(complements) == len(graph):
+            >>>            # the network is fully lesioned so:
+            >>>            return 0.0
+            >>>
+            >>>         else:
+            >>>            # lesion the system, calculate things
+            >>>            lesioned = graph.copy()
+            >>>            lesioned.remove_nodes_from(complements)
+            >>>            return nx.local_efficiency(lesioned)
 
         objective_function_params (Optional[Dict]):
             Kwargs for the objective_function.
 
     Returns:
         (Tuple[Dict, Dict]): 
-        - contributions: A dictionary of coalitions:results
-        - lesion_effects: A dictionary of lesions:results
+            - contributions: A dictionary of coalitions:results
+            - lesion_effects: A dictionary of lesions:results
     """
     objective_function_params = objective_function_params if objective_function_params else {}
 
@@ -189,13 +189,13 @@ def sorter(shapley_table: pd.DataFrame, ascending: Optional[bool] = False) -> pd
     Sorts the elements based on their average shapley values or in ascending order by calling:
         `df.sort_index(axis=1)`
     Args:
-        ascending(bool):
+        ascending (bool):
             I noticed although in the DataFrame itself the Shapley values are at their right places, but the order of
             elements are shuffled (probably during the calculation). This causes headache and is potentially dangerous
             if you're using a list of indices as elements that you'll translate to np or normal lists within your game.
             so assuming the elements were in ascending order like np.arange or range, this will save you from the pain.
 
-        shapley_table(pd.DataFrame):
+        shapley_table (pd.DataFrame):
             Unsorted shapley table.
 
     Returns:
