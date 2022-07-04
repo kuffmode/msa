@@ -409,7 +409,7 @@ def interface(*,
                     return nx.local_efficiency(lesioned)
 
         objective_function_params (Dict):
-           Kwargs for the objective_function.
+            Kwargs for the objective_function.
 
         permutation_space (Optional[list]):
             Already generated permutation space, in case you want to be more reproducible or something and use the same
@@ -626,7 +626,6 @@ def network_interaction_2d(*,
     interactions between the elements.
 
     Args:
-        Args:
         n_permutations (int): Number of permutations (samples) per element.
 
         elements (list): List of the players (elements). Can be strings (names), integers (indicies), and tuples.
@@ -688,7 +687,7 @@ def network_interaction_2d(*,
 
     Raises:
         NotImplementedError: Raises this error in case the contribution is a timeseries or there are
-        multiple contributions
+            multiple contributions
 
     Returns:
         np.ndarray: the interaction matrix
