@@ -736,6 +736,7 @@ def estimate_causal_influences(elements: list,
                                n_cores: int = -1,
                                n_permutations: int = 1000,
                                permutation_seed: Optional[int] = None,
+                               parallelize_over_games=False
                                ) -> pd.DataFrame:
     """
     Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function
@@ -824,7 +825,13 @@ def estimate_causal_influences(elements: list,
     """
     objective_function_params = objective_function_params if objective_function_params else {}
 
-    if multiprocessing_method == 'ray':
+    if parallelize_over_games:
+        results = [run_interface_ci(elements, objective_function,
+                                    objective_function_params, n_permutations,
+                                    n_cores, multiprocessing_method,
+                                    permutation_seed, index, element) for index, element in tqdm(enumerate(elements))]
+
+    elif multiprocessing_method == 'ray':
         if n_cores <= 0:
             warnings.warn("A zero or a negative n_cores was passed and ray doesn't like so "
                           "to fix that ray.init() will get no arguments, "
@@ -835,6 +842,7 @@ def estimate_causal_influences(elements: list,
 
         result_ids = [ray.remote(run_interface_ci).remote(elements, objective_function,
                                                           objective_function_params, n_permutations,
+                                                          1, 'joblib',
                                                           permutation_seed, index, element) for index, element in enumerate(elements)]
 
         for _ in tqdm(ut.ray_iterator(result_ids), total=len(result_ids)):
@@ -846,11 +854,13 @@ def estimate_causal_influences(elements: list,
     elif multiprocessing_method == 'joblib':
         results = (Parallel(n_jobs=n_cores)(delayed(run_interface_ci)(elements, objective_function,
                                                                       objective_function_params, n_permutations,
+                                                                      1, 'joblib',
                                                                       permutation_seed, index, element) for index, element in tqdm(enumerate(elements))))
 
     else:
         results = [run_interface_ci(elements, objective_function,
                                     objective_function_params, n_permutations,
+                                    1, 'joblib',
                                     permutation_seed, index, element) for index, element in tqdm(enumerate(elements))]
 
     _, multi_scores, is_timeseries = results[0]
@@ -862,8 +872,9 @@ def estimate_causal_influences(elements: list,
 
 
 def run_interface_ci(elements, objective_function,
-                     objective_function_params,
-                     n_permutations, permutation_seed, index, element):
+                     objective_function_params, n_permutations,
+                     n_parallel_games, multiprocessing_method,
+                     permutation_seed, index, element):
 
     print(f"working on node number {index} from {len(elements)} nodes.")
     objective_function_params['index'] = index
@@ -875,7 +886,8 @@ def run_interface_ci(elements, objective_function,
                                                 elements=list(without_target),
                                                 objective_function=objective_function,
                                                 objective_function_params=objective_function_params,
-                                                n_parallel_games=1,
+                                                n_parallel_games=n_parallel_games,
+                                                multiprocessing_method=multiprocessing_method,
                                                 random_seed=permutation_seed)
 
     _, multi_scores, is_timeseries = _get_contribution_type(contributions)
