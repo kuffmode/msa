@@ -9,6 +9,3 @@ pytest~=6.2.5
 ordered-set ~= 4.0.2
 matplotlib ~= 3.4.3
 seaborn ~= 0.11.2
-mkdocs-material
-mkdocstrings
-mkdocs-jupyter
