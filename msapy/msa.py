@@ -630,6 +630,9 @@ def network_interaction_2d(*,
 
         elements (list): List of the players (elements). Can be strings (names), integers (indicies), and tuples.
 
+        pairs (Optional[list]): List of pairs of elements that you want to analyze the interaction between. 
+            Defaults to None which means all possible pairs
+
         objective_function (Callable):
             The game (in-silico experiment). It should get the complement set and return one numeric value
             either int or float.
@@ -719,6 +722,15 @@ def network_interaction_2d(*,
 
 
 def _get_gamma(shapley_table, idx):
+    """returns shapley value of elements in idx
+
+    Args:
+        shapley_table (pd.DataFrame): shapley table with one element lesioned
+        idx (_type_): element of interest
+
+    Returns:
+        shapley value of elements in idx
+    """
     if shapley_table.index.nlevels == 1:
         gamma = shapley_table[list(idx)].mean()
     elif "timestamp" in shapley_table.index.names:
@@ -732,10 +744,12 @@ def _get_gamma(shapley_table, idx):
 def estimate_causal_influences(elements: list,
                                objective_function: Callable,
                                objective_function_params: Optional[dict] = None,
+                               target_elements: Optional[list] = None,
                                multiprocessing_method: str = 'joblib',
                                n_cores: int = -1,
                                n_permutations: int = 1000,
                                permutation_seed: Optional[int] = None,
+                               parallelize_over_games=False
                                ) -> pd.DataFrame:
     """
     Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function
@@ -799,6 +813,8 @@ def estimate_causal_influences(elements: list,
             Kwargs for the objective_function. A dictionary pair of {'index': index} will be added to this during
             the process so your function can track the lesion effect.
 
+        target_elements (Optional[list]): list of elements that you want to calculate the causal influence of.
+
         multiprocessing_method (str = 'joblib'):
             So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
             If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
@@ -818,13 +834,23 @@ def estimate_causal_influences(elements: list,
             Sets the random seed of the sampling process. Default is None so if nothing is given every call results in
             a different orderings.
 
+        parallelize_over_games (bool = False): Whether to parallelize over games or parallelize over elements. Parallelizing
+            over the elements is generally faster. Defaults to False
+
     Returns:
         causal_influences (pd.DataFrame)
 
     """
+    target_elements = target_elements if target_elements else elements
     objective_function_params = objective_function_params if objective_function_params else {}
 
-    if multiprocessing_method == 'ray':
+    if parallelize_over_games:
+        results = [causal_influence_single_element(elements, objective_function,
+                                                   objective_function_params, n_permutations,
+                                                   n_cores, multiprocessing_method,
+                                                   permutation_seed, index, element) for index, element in tqdm(enumerate(target_elements))]
+
+    elif multiprocessing_method == 'ray':
         if n_cores <= 0:
             warnings.warn("A zero or a negative n_cores was passed and ray doesn't like so "
                           "to fix that ray.init() will get no arguments, "
@@ -833,9 +859,10 @@ def estimate_causal_influences(elements: list,
         else:
             ray.init(n_cores)
 
-        result_ids = [ray.remote(run_interface_ci).remote(elements, objective_function,
-                                                          objective_function_params, n_permutations,
-                                                          permutation_seed, index, element) for index, element in enumerate(elements)]
+        result_ids = [ray.remote(causal_influence_single_element).remote(elements, objective_function,
+                                                                         objective_function_params, n_permutations,
+                                                                         1, 'joblib',
+                                                                         permutation_seed, index, element) for index, element in enumerate(target_elements)]
 
         for _ in tqdm(ut.ray_iterator(result_ids), total=len(result_ids)):
             pass
@@ -844,14 +871,16 @@ def estimate_causal_influences(elements: list,
         ray.shutdown()
 
     elif multiprocessing_method == 'joblib':
-        results = (Parallel(n_jobs=n_cores)(delayed(run_interface_ci)(elements, objective_function,
-                                                                      objective_function_params, n_permutations,
-                                                                      permutation_seed, index, element) for index, element in tqdm(enumerate(elements))))
+        results = (Parallel(n_jobs=n_cores)(delayed(causal_influence_single_element)(elements, objective_function,
+                                                                                     objective_function_params, n_permutations,
+                                                                                     1, 'joblib',
+                                                                                     permutation_seed, index, element) for index, element in tqdm(enumerate(target_elements))))
 
     else:
-        results = [run_interface_ci(elements, objective_function,
-                                    objective_function_params, n_permutations,
-                                    permutation_seed, index, element) for index, element in tqdm(enumerate(elements))]
+        results = [causal_influence_single_element(elements, objective_function,
+                                                   objective_function_params, n_permutations,
+                                                   1, 'joblib',
+                                                   permutation_seed, index, element) for index, element in tqdm(enumerate(target_elements))]
 
     _, multi_scores, is_timeseries = results[0]
     shapley_values = [r[0] for r in results]
@@ -861,9 +890,75 @@ def estimate_causal_influences(elements: list,
     return causal_influences.swaplevel().sort_index(level=0) if multi_scores else causal_influences
 
 
-def run_interface_ci(elements, objective_function,
-                     objective_function_params,
-                     n_permutations, permutation_seed, index, element):
+def causal_influence_single_element(elements, objective_function,
+                                    objective_function_params, n_permutations,
+                                    n_parallel_games, multiprocessing_method,
+                                    permutation_seed, index, element):
+    """
+    Estimates the causal contribution (Shapley values) of a node on the rest of the network. Basically, this function
+    performs MSA and tracks the changes in the objective_function of the target node.
+
+    Args:
+        elements (list):
+            List of the players (elements). Can be strings (names), integers (indicies), and tuples.
+
+        objective_function (Callable):
+            The game (in-silico experiment). It should get the complement set and return one numeric value
+            either int or float.
+            This function is just calling it as: objective_function(complement, **objective_function_params)
+
+            An example using networkx with some tips:
+
+            def lesion_me_senpai(complements, network, index):
+                # note "index", your function should be able to track the effects on the target and the keyword for
+                  that is "index"
+
+                if len(complements) == len(A)-1:  # -1 since the target node is active
+                    return 0
+
+                lesioned_network = deepcopy(network)
+                for target in complements:
+                    lesioned_network[target] = 0  # setting all connections of the targets to 0
+
+                activity = network.run(lesioned_network) # or really, whatever you want!
+                return float(activity[index].mean())
+
+            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
+
+
+        objective_function_params (Optional[Dict]):
+            Kwargs for the objective_function. A dictionary pair of {'index': index} will be added to this during
+            the process so your function can track the lesion effect.
+
+        multiprocessing_method (str = 'joblib'):
+            So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+            documentations to see how to go for it.
+
+        n_parallel_games (int = -1):
+            Number of parallel games. Default is -1, which means all cores so it can make the system
+            freeze for a short period, if that happened then maybe go for -2, which means one msapy is
+            left out. Or really just specify the number of threads you want to use!
+
+        n_permutations (int = 1000):
+            Number of permutations per node.
+            Didn't check it systematically yet but just based on random explorations
+            I'd say something around 1000 is enough.
+
+        permutation_seed (Optional[int] = None):
+            Sets the random seed of the sampling process. Default is None so if nothing is given every call results in
+            a different orderings.
+
+        index : index to be passed to the objective function
+
+        element : element whose causal influence we want to calculate.
+
+    Returns:
+        causal_influences (pd.DataFrame)
+        multi_scores (bool)
+        is_timeseries (bool)
+
+    """
 
     print(f"working on node number {index} from {len(elements)} nodes.")
     objective_function_params['index'] = index
@@ -875,7 +970,8 @@ def run_interface_ci(elements, objective_function,
                                                 elements=list(without_target),
                                                 objective_function=objective_function,
                                                 objective_function_params=objective_function_params,
-                                                n_parallel_games=1,
+                                                n_parallel_games=n_parallel_games,
+                                                multiprocessing_method=multiprocessing_method,
                                                 random_seed=permutation_seed)
 
     _, multi_scores, is_timeseries = _get_contribution_type(contributions)
