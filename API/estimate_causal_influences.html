@@ -1,0 +1,1315 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A compact and general-purpose Python package for Multiperturbation Shapley value Analysis (MSA).">
+      
+      
+        <meta name="author" content="Kayson Fakhar">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.3.9">
+    
+    
+      
+        <title>Estimate causal influences - MSA (Multi-perturbation Shapley value Analysis)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.1d29e8d0.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
+        
+      
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#msapy.msa.estimate_causal_influences" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="MSA (Multi-perturbation Shapley value Analysis)" class="md-header__button md-logo" aria-label="MSA (Multi-perturbation Shapley value Analysis)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MSA (Multi-perturbation Shapley value Analysis)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Estimate causal influences
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/kuffmode/msa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="MSA (Multi-perturbation Shapley value Analysis)" class="md-nav__button md-logo" aria-label="MSA (Multi-perturbation Shapley value Analysis)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    MSA (Multi-perturbation Shapley value Analysis)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/kuffmode/msa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Estimate causal influences
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="estimate_causal_influences.html" class="md-nav__link md-nav__link--active">
+        Estimate causal influences
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#msapy.msa.estimate_causal_influences" class="md-nav__link">
+    msapy.msa.estimate_causal_influences
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="interface.html" class="md-nav__link">
+        Interface
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_combination_space.html" class="md-nav__link">
+        Make combination space
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_complement_space.html" class="md-nav__link">
+        Make complement space
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_permutation_space.html" class="md-nav__link">
+        Make permutation space
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_shapley_values.html" class="md-nav__link">
+        Make shapley values
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="network_interaction_2d.html" class="md-nav__link">
+        Network interaction 2d
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="take_contributions.html" class="md-nav__link">
+        Take contributions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Plotting
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Plotting" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Plotting
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Plotting/color_code.html" class="md-nav__link">
+        Color code
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Plotting/plot_shapley_ranks.html" class="md-nav__link">
+        Plot shapley ranks
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4">
+          Utils
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Utils" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Utils
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/bootstrap_hypothesis_testing.html" class="md-nav__link">
+        Bootstrap hypothesis testing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/distribution_of_processing.html" class="md-nav__link">
+        Distribution of processing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/parallelized_take_contributions.html" class="md-nav__link">
+        Parallelized take contributions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/sorter.html" class="md-nav__link">
+        Sorter
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5">
+          Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/MSA%20TimeSeries.html" class="md-nav__link">
+        MSA TimeSeries
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/brain%20modes.html" class="md-nav__link">
+        Capturing contributions in different 'brain modes'
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/minimal.html" class="md-nav__link">
+        Minimal examples of how to use MSA
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/mnist_torch.html" class="md-nav__link">
+        Mnist torch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/msa2d.html" class="md-nav__link">
+        Msa2d
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/on%20ground-truth%20models.html" class="md-nav__link">
+        Working with groundtruth models
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#msapy.msa.estimate_causal_influences" class="md-nav__link">
+    msapy.msa.estimate_causal_influences
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+  <a href="https://github.com/kuffmode/msa/edit/master/docs/API/estimate_causal_influences.md" title="Edit this page" class="md-content__button md-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+
+  <h1>Estimate causal influences</h1>
+
+<div class="doc doc-object doc-function">
+
+
+<a id="msapy.msa.estimate_causal_influences"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function
+performs MSA iteratively on each node and tracks the changes in the objective_function of the target node.
+For example we have a chain A -&gt; B -&gt; C, and we want to know how much A and B are contributing to C. We first need to
+define a metric for C (objective_function) which here let's say is the average activity of C. MSA then performs a
+multi-site lesioning analysis of A and B so for each we will end up with a number indicating their contributions to
+the average activity of C.</p>
+
+<details class="very-important-notes">
+  <summary>VERY IMPORTANT NOTES</summary>
+  <ol>
+<li>The resulting causal contribution matrix does not necessarily reflect the connectome. In the example above
+there's no actual connection A -&gt; C but there might be one in the causal contribution matrix since A is causally
+influencing C via B.</li>
+<li>Think twice (even three times) about your objective function. The same everything will result in different
+causal contribution matrices depending on what are you tracking and how accurate it's capturing the effect of
+lesions. Also don't forget the edge-cases. There will be weird behaviors in your system, for example, what it
+does if every node is perturbed?</li>
+<li>The metric you track is preferred to be non-negative and bounded (at least practically!)</li>
+<li>Obviously this will take N times longer than a normal MSA with N is the number of nodes. So make sure your
+process is as fast as it can be for example use Numba and stuff, but you don't need to implement any parallel
+processes since it's already implemented here. Going below 1000 permutations might be an option depending on
+your specific case but based on experience, it's not a good idea </li>
+<li>Shapley values sum up (or will be close) to the value of the intact coalition. So for example if the
+mean activity of node C here is 50 then causal_contribution_matrix.sum(axis=0) = 50 or close to 50. If not it
+means:<ol>
+<li>the number of permutations are not enough</li>
+<li>there is randomness somewhere in the process</li>
+<li>your objective function is not suitable</li>
+</ol>
+</li>
+</ol>
+</details>
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>elements</code></td>
+          <td>
+                <code>list</code>
+          </td>
+          <td><p>List of the players (elements). Can be strings (names), integers (indicies), and tuples.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>objective_function</code></td>
+          <td>
+                <code><span title="typing.Callable">Callable</span></code>
+          </td>
+          <td><p>The game (in-silico experiment). It should get the complement set and return one numeric value
+either int or float.
+This function is just calling it as: objective_function(complement, **objective_function_params)</p>
+<p>An example using networkx with some tips:</p>
+<p>def lesion_me_senpai(complements, network, index):
+    # note "index", your function should be able to track the effects on the target and the keyword for
+      that is "index"</p>
+<div class="highlight"><pre><span></span><code>if len(complements) == len(A)-1:  # -1 since the target node is active
+    return 0
+
+lesioned_network = deepcopy(network)
+for target in complements:
+    lesioned_network[target] = 0  # setting all connections of the targets to 0
+
+activity = network.run(lesioned_network) # or really, whatever you want!
+return float(activity[index].mean())
+</code></pre></div>
+<p>(you sometimes need to specify what should happen during edge-cases like an all-lesioned network)</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>objective_function_params</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>]</code>
+          </td>
+          <td><p>Kwargs for the objective_function. A dictionary pair of {'index': index} will be added to this during
+the process so your function can track the lesion effect.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target_elements</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[list]</code>
+          </td>
+          <td><p>list of elements that you want to calculate the causal influence of.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>multiprocessing_method</code></td>
+          <td>
+                <code>str = &#39;joblib&#39;</code>
+          </td>
+          <td><p>So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+documentations to see how to go for it.</p></td>
+          <td>
+                <code>&#39;joblib&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n_cores</code></td>
+          <td>
+                <code>int = -1</code>
+          </td>
+          <td><p>Number of parallel games. Default is -1, which means all cores so it can make the system
+freeze for a short period, if that happened then maybe go for -2, which means one msapy is
+left out. Or really just specify the number of threads you want to use!</p></td>
+          <td>
+                <code>-1</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n_permutations</code></td>
+          <td>
+                <code>int = 1000</code>
+          </td>
+          <td><p>Number of permutations per node.
+Didn't check it systematically yet but just based on random explorations
+I'd say something around 1000 is enough.</p></td>
+          <td>
+                <code>1000</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>permutation_seed</code></td>
+          <td>
+                <code>Optional[int] = None</code>
+          </td>
+          <td><p>Sets the random seed of the sampling process. Default is None so if nothing is given every call results in
+a different orderings.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>parallelize_over_games</code></td>
+          <td>
+                <code>bool = False</code>
+          </td>
+          <td><p>Whether to parallelize over games or parallelize over elements. Parallelizing
+over the elements is generally faster. Defaults to False</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
+          </td>
+          <td><p>causal_influences (pd.DataFrame)</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>msapy/msa.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-743">743</a></span>
+<span class="normal"><a href="#__codelineno-0-744">744</a></span>
+<span class="normal"><a href="#__codelineno-0-745">745</a></span>
+<span class="normal"><a href="#__codelineno-0-746">746</a></span>
+<span class="normal"><a href="#__codelineno-0-747">747</a></span>
+<span class="normal"><a href="#__codelineno-0-748">748</a></span>
+<span class="normal"><a href="#__codelineno-0-749">749</a></span>
+<span class="normal"><a href="#__codelineno-0-750">750</a></span>
+<span class="normal"><a href="#__codelineno-0-751">751</a></span>
+<span class="normal"><a href="#__codelineno-0-752">752</a></span>
+<span class="normal"><a href="#__codelineno-0-753">753</a></span>
+<span class="normal"><a href="#__codelineno-0-754">754</a></span>
+<span class="normal"><a href="#__codelineno-0-755">755</a></span>
+<span class="normal"><a href="#__codelineno-0-756">756</a></span>
+<span class="normal"><a href="#__codelineno-0-757">757</a></span>
+<span class="normal"><a href="#__codelineno-0-758">758</a></span>
+<span class="normal"><a href="#__codelineno-0-759">759</a></span>
+<span class="normal"><a href="#__codelineno-0-760">760</a></span>
+<span class="normal"><a href="#__codelineno-0-761">761</a></span>
+<span class="normal"><a href="#__codelineno-0-762">762</a></span>
+<span class="normal"><a href="#__codelineno-0-763">763</a></span>
+<span class="normal"><a href="#__codelineno-0-764">764</a></span>
+<span class="normal"><a href="#__codelineno-0-765">765</a></span>
+<span class="normal"><a href="#__codelineno-0-766">766</a></span>
+<span class="normal"><a href="#__codelineno-0-767">767</a></span>
+<span class="normal"><a href="#__codelineno-0-768">768</a></span>
+<span class="normal"><a href="#__codelineno-0-769">769</a></span>
+<span class="normal"><a href="#__codelineno-0-770">770</a></span>
+<span class="normal"><a href="#__codelineno-0-771">771</a></span>
+<span class="normal"><a href="#__codelineno-0-772">772</a></span>
+<span class="normal"><a href="#__codelineno-0-773">773</a></span>
+<span class="normal"><a href="#__codelineno-0-774">774</a></span>
+<span class="normal"><a href="#__codelineno-0-775">775</a></span>
+<span class="normal"><a href="#__codelineno-0-776">776</a></span>
+<span class="normal"><a href="#__codelineno-0-777">777</a></span>
+<span class="normal"><a href="#__codelineno-0-778">778</a></span>
+<span class="normal"><a href="#__codelineno-0-779">779</a></span>
+<span class="normal"><a href="#__codelineno-0-780">780</a></span>
+<span class="normal"><a href="#__codelineno-0-781">781</a></span>
+<span class="normal"><a href="#__codelineno-0-782">782</a></span>
+<span class="normal"><a href="#__codelineno-0-783">783</a></span>
+<span class="normal"><a href="#__codelineno-0-784">784</a></span>
+<span class="normal"><a href="#__codelineno-0-785">785</a></span>
+<span class="normal"><a href="#__codelineno-0-786">786</a></span>
+<span class="normal"><a href="#__codelineno-0-787">787</a></span>
+<span class="normal"><a href="#__codelineno-0-788">788</a></span>
+<span class="normal"><a href="#__codelineno-0-789">789</a></span>
+<span class="normal"><a href="#__codelineno-0-790">790</a></span>
+<span class="normal"><a href="#__codelineno-0-791">791</a></span>
+<span class="normal"><a href="#__codelineno-0-792">792</a></span>
+<span class="normal"><a href="#__codelineno-0-793">793</a></span>
+<span class="normal"><a href="#__codelineno-0-794">794</a></span>
+<span class="normal"><a href="#__codelineno-0-795">795</a></span>
+<span class="normal"><a href="#__codelineno-0-796">796</a></span>
+<span class="normal"><a href="#__codelineno-0-797">797</a></span>
+<span class="normal"><a href="#__codelineno-0-798">798</a></span>
+<span class="normal"><a href="#__codelineno-0-799">799</a></span>
+<span class="normal"><a href="#__codelineno-0-800">800</a></span>
+<span class="normal"><a href="#__codelineno-0-801">801</a></span>
+<span class="normal"><a href="#__codelineno-0-802">802</a></span>
+<span class="normal"><a href="#__codelineno-0-803">803</a></span>
+<span class="normal"><a href="#__codelineno-0-804">804</a></span>
+<span class="normal"><a href="#__codelineno-0-805">805</a></span>
+<span class="normal"><a href="#__codelineno-0-806">806</a></span>
+<span class="normal"><a href="#__codelineno-0-807">807</a></span>
+<span class="normal"><a href="#__codelineno-0-808">808</a></span>
+<span class="normal"><a href="#__codelineno-0-809">809</a></span>
+<span class="normal"><a href="#__codelineno-0-810">810</a></span>
+<span class="normal"><a href="#__codelineno-0-811">811</a></span>
+<span class="normal"><a href="#__codelineno-0-812">812</a></span>
+<span class="normal"><a href="#__codelineno-0-813">813</a></span>
+<span class="normal"><a href="#__codelineno-0-814">814</a></span>
+<span class="normal"><a href="#__codelineno-0-815">815</a></span>
+<span class="normal"><a href="#__codelineno-0-816">816</a></span>
+<span class="normal"><a href="#__codelineno-0-817">817</a></span>
+<span class="normal"><a href="#__codelineno-0-818">818</a></span>
+<span class="normal"><a href="#__codelineno-0-819">819</a></span>
+<span class="normal"><a href="#__codelineno-0-820">820</a></span>
+<span class="normal"><a href="#__codelineno-0-821">821</a></span>
+<span class="normal"><a href="#__codelineno-0-822">822</a></span>
+<span class="normal"><a href="#__codelineno-0-823">823</a></span>
+<span class="normal"><a href="#__codelineno-0-824">824</a></span>
+<span class="normal"><a href="#__codelineno-0-825">825</a></span>
+<span class="normal"><a href="#__codelineno-0-826">826</a></span>
+<span class="normal"><a href="#__codelineno-0-827">827</a></span>
+<span class="normal"><a href="#__codelineno-0-828">828</a></span>
+<span class="normal"><a href="#__codelineno-0-829">829</a></span>
+<span class="normal"><a href="#__codelineno-0-830">830</a></span>
+<span class="normal"><a href="#__codelineno-0-831">831</a></span>
+<span class="normal"><a href="#__codelineno-0-832">832</a></span>
+<span class="normal"><a href="#__codelineno-0-833">833</a></span>
+<span class="normal"><a href="#__codelineno-0-834">834</a></span>
+<span class="normal"><a href="#__codelineno-0-835">835</a></span>
+<span class="normal"><a href="#__codelineno-0-836">836</a></span>
+<span class="normal"><a href="#__codelineno-0-837">837</a></span>
+<span class="normal"><a href="#__codelineno-0-838">838</a></span>
+<span class="normal"><a href="#__codelineno-0-839">839</a></span>
+<span class="normal"><a href="#__codelineno-0-840">840</a></span>
+<span class="normal"><a href="#__codelineno-0-841">841</a></span>
+<span class="normal"><a href="#__codelineno-0-842">842</a></span>
+<span class="normal"><a href="#__codelineno-0-843">843</a></span>
+<span class="normal"><a href="#__codelineno-0-844">844</a></span>
+<span class="normal"><a href="#__codelineno-0-845">845</a></span>
+<span class="normal"><a href="#__codelineno-0-846">846</a></span>
+<span class="normal"><a href="#__codelineno-0-847">847</a></span>
+<span class="normal"><a href="#__codelineno-0-848">848</a></span>
+<span class="normal"><a href="#__codelineno-0-849">849</a></span>
+<span class="normal"><a href="#__codelineno-0-850">850</a></span>
+<span class="normal"><a href="#__codelineno-0-851">851</a></span>
+<span class="normal"><a href="#__codelineno-0-852">852</a></span>
+<span class="normal"><a href="#__codelineno-0-853">853</a></span>
+<span class="normal"><a href="#__codelineno-0-854">854</a></span>
+<span class="normal"><a href="#__codelineno-0-855">855</a></span>
+<span class="normal"><a href="#__codelineno-0-856">856</a></span>
+<span class="normal"><a href="#__codelineno-0-857">857</a></span>
+<span class="normal"><a href="#__codelineno-0-858">858</a></span>
+<span class="normal"><a href="#__codelineno-0-859">859</a></span>
+<span class="normal"><a href="#__codelineno-0-860">860</a></span>
+<span class="normal"><a href="#__codelineno-0-861">861</a></span>
+<span class="normal"><a href="#__codelineno-0-862">862</a></span>
+<span class="normal"><a href="#__codelineno-0-863">863</a></span>
+<span class="normal"><a href="#__codelineno-0-864">864</a></span>
+<span class="normal"><a href="#__codelineno-0-865">865</a></span>
+<span class="normal"><a href="#__codelineno-0-866">866</a></span>
+<span class="normal"><a href="#__codelineno-0-867">867</a></span>
+<span class="normal"><a href="#__codelineno-0-868">868</a></span>
+<span class="normal"><a href="#__codelineno-0-869">869</a></span>
+<span class="normal"><a href="#__codelineno-0-870">870</a></span>
+<span class="normal"><a href="#__codelineno-0-871">871</a></span>
+<span class="normal"><a href="#__codelineno-0-872">872</a></span>
+<span class="normal"><a href="#__codelineno-0-873">873</a></span>
+<span class="normal"><a href="#__codelineno-0-874">874</a></span>
+<span class="normal"><a href="#__codelineno-0-875">875</a></span>
+<span class="normal"><a href="#__codelineno-0-876">876</a></span>
+<span class="normal"><a href="#__codelineno-0-877">877</a></span>
+<span class="normal"><a href="#__codelineno-0-878">878</a></span>
+<span class="normal"><a href="#__codelineno-0-879">879</a></span>
+<span class="normal"><a href="#__codelineno-0-880">880</a></span>
+<span class="normal"><a href="#__codelineno-0-881">881</a></span>
+<span class="normal"><a href="#__codelineno-0-882">882</a></span>
+<span class="normal"><a href="#__codelineno-0-883">883</a></span>
+<span class="normal"><a href="#__codelineno-0-884">884</a></span>
+<span class="normal"><a href="#__codelineno-0-885">885</a></span>
+<span class="normal"><a href="#__codelineno-0-886">886</a></span>
+<span class="normal"><a href="#__codelineno-0-887">887</a></span>
+<span class="normal"><a href="#__codelineno-0-888">888</a></span>
+<span class="normal"><a href="#__codelineno-0-889">889</a></span>
+<span class="normal"><a href="#__codelineno-0-890">890</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-743" name="__codelineno-0-743"></a><span class="nd">@typechecked</span>
+<a id="__codelineno-0-744" name="__codelineno-0-744"></a><span class="k">def</span> <span class="nf">estimate_causal_influences</span><span class="p">(</span><span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+<a id="__codelineno-0-745" name="__codelineno-0-745"></a>                               <span class="n">objective_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+<a id="__codelineno-0-746" name="__codelineno-0-746"></a>                               <span class="n">objective_function_params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-747" name="__codelineno-0-747"></a>                               <span class="n">target_elements</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-748" name="__codelineno-0-748"></a>                               <span class="n">multiprocessing_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;joblib&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-749" name="__codelineno-0-749"></a>                               <span class="n">n_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-750" name="__codelineno-0-750"></a>                               <span class="n">n_permutations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+<a id="__codelineno-0-751" name="__codelineno-0-751"></a>                               <span class="n">permutation_seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-752" name="__codelineno-0-752"></a>                               <span class="n">parallelize_over_games</span><span class="o">=</span><span class="kc">False</span>
+<a id="__codelineno-0-753" name="__codelineno-0-753"></a>                               <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<a id="__codelineno-0-754" name="__codelineno-0-754"></a>    <span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-755" name="__codelineno-0-755"></a><span class="sd">    Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function</span>
+<a id="__codelineno-0-756" name="__codelineno-0-756"></a><span class="sd">    performs MSA iteratively on each node and tracks the changes in the objective_function of the target node.</span>
+<a id="__codelineno-0-757" name="__codelineno-0-757"></a><span class="sd">    For example we have a chain A -&gt; B -&gt; C, and we want to know how much A and B are contributing to C. We first need to</span>
+<a id="__codelineno-0-758" name="__codelineno-0-758"></a><span class="sd">    define a metric for C (objective_function) which here let&#39;s say is the average activity of C. MSA then performs a</span>
+<a id="__codelineno-0-759" name="__codelineno-0-759"></a><span class="sd">    multi-site lesioning analysis of A and B so for each we will end up with a number indicating their contributions to</span>
+<a id="__codelineno-0-760" name="__codelineno-0-760"></a><span class="sd">    the average activity of C.</span>
+<a id="__codelineno-0-761" name="__codelineno-0-761"></a>
+<a id="__codelineno-0-762" name="__codelineno-0-762"></a><span class="sd">    VERY IMPORTANT NOTES:</span>
+<a id="__codelineno-0-763" name="__codelineno-0-763"></a>
+<a id="__codelineno-0-764" name="__codelineno-0-764"></a><span class="sd">        1. The resulting causal contribution matrix does not necessarily reflect the connectome. In the example above</span>
+<a id="__codelineno-0-765" name="__codelineno-0-765"></a><span class="sd">        there&#39;s no actual connection A -&gt; C but there might be one in the causal contribution matrix since A is causally</span>
+<a id="__codelineno-0-766" name="__codelineno-0-766"></a><span class="sd">        influencing C via B.</span>
+<a id="__codelineno-0-767" name="__codelineno-0-767"></a><span class="sd">        2. Think twice (even three times) about your objective function. The same everything will result in different</span>
+<a id="__codelineno-0-768" name="__codelineno-0-768"></a><span class="sd">        causal contribution matrices depending on what are you tracking and how accurate it&#39;s capturing the effect of</span>
+<a id="__codelineno-0-769" name="__codelineno-0-769"></a><span class="sd">        lesions. Also don&#39;t forget the edge-cases. There will be weird behaviors in your system, for example, what it</span>
+<a id="__codelineno-0-770" name="__codelineno-0-770"></a><span class="sd">        does if every node is perturbed?</span>
+<a id="__codelineno-0-771" name="__codelineno-0-771"></a><span class="sd">        3. The metric you track is preferred to be non-negative and bounded (at least practically!)</span>
+<a id="__codelineno-0-772" name="__codelineno-0-772"></a><span class="sd">        4. Obviously this will take N times longer than a normal MSA with N is the number of nodes. So make sure your</span>
+<a id="__codelineno-0-773" name="__codelineno-0-773"></a><span class="sd">        process is as fast as it can be for example use Numba and stuff, but you don&#39;t need to implement any parallel</span>
+<a id="__codelineno-0-774" name="__codelineno-0-774"></a><span class="sd">        processes since it&#39;s already implemented here. Going below 1000 permutations might be an option depending on</span>
+<a id="__codelineno-0-775" name="__codelineno-0-775"></a><span class="sd">        your specific case but based on experience, it&#39;s not a good idea </span>
+<a id="__codelineno-0-776" name="__codelineno-0-776"></a><span class="sd">        5. Shapley values sum up (or will be close) to the value of the intact coalition. So for example if the</span>
+<a id="__codelineno-0-777" name="__codelineno-0-777"></a><span class="sd">        mean activity of node C here is 50 then causal_contribution_matrix.sum(axis=0) = 50 or close to 50. If not it</span>
+<a id="__codelineno-0-778" name="__codelineno-0-778"></a><span class="sd">        means:</span>
+<a id="__codelineno-0-779" name="__codelineno-0-779"></a><span class="sd">            1. the number of permutations are not enough</span>
+<a id="__codelineno-0-780" name="__codelineno-0-780"></a><span class="sd">            2. there is randomness somewhere in the process</span>
+<a id="__codelineno-0-781" name="__codelineno-0-781"></a><span class="sd">            3. your objective function is not suitable</span>
+<a id="__codelineno-0-782" name="__codelineno-0-782"></a>
+<a id="__codelineno-0-783" name="__codelineno-0-783"></a>
+<a id="__codelineno-0-784" name="__codelineno-0-784"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-785" name="__codelineno-0-785"></a><span class="sd">        elements (list):</span>
+<a id="__codelineno-0-786" name="__codelineno-0-786"></a><span class="sd">            List of the players (elements). Can be strings (names), integers (indicies), and tuples.</span>
+<a id="__codelineno-0-787" name="__codelineno-0-787"></a>
+<a id="__codelineno-0-788" name="__codelineno-0-788"></a><span class="sd">        objective_function (Callable):</span>
+<a id="__codelineno-0-789" name="__codelineno-0-789"></a><span class="sd">            The game (in-silico experiment). It should get the complement set and return one numeric value</span>
+<a id="__codelineno-0-790" name="__codelineno-0-790"></a><span class="sd">            either int or float.</span>
+<a id="__codelineno-0-791" name="__codelineno-0-791"></a><span class="sd">            This function is just calling it as: objective_function(complement, **objective_function_params)</span>
+<a id="__codelineno-0-792" name="__codelineno-0-792"></a>
+<a id="__codelineno-0-793" name="__codelineno-0-793"></a><span class="sd">            An example using networkx with some tips:</span>
+<a id="__codelineno-0-794" name="__codelineno-0-794"></a>
+<a id="__codelineno-0-795" name="__codelineno-0-795"></a><span class="sd">            def lesion_me_senpai(complements, network, index):</span>
+<a id="__codelineno-0-796" name="__codelineno-0-796"></a><span class="sd">                # note &quot;index&quot;, your function should be able to track the effects on the target and the keyword for</span>
+<a id="__codelineno-0-797" name="__codelineno-0-797"></a><span class="sd">                  that is &quot;index&quot;</span>
+<a id="__codelineno-0-798" name="__codelineno-0-798"></a>
+<a id="__codelineno-0-799" name="__codelineno-0-799"></a><span class="sd">                if len(complements) == len(A)-1:  # -1 since the target node is active</span>
+<a id="__codelineno-0-800" name="__codelineno-0-800"></a><span class="sd">                    return 0</span>
+<a id="__codelineno-0-801" name="__codelineno-0-801"></a>
+<a id="__codelineno-0-802" name="__codelineno-0-802"></a><span class="sd">                lesioned_network = deepcopy(network)</span>
+<a id="__codelineno-0-803" name="__codelineno-0-803"></a><span class="sd">                for target in complements:</span>
+<a id="__codelineno-0-804" name="__codelineno-0-804"></a><span class="sd">                    lesioned_network[target] = 0  # setting all connections of the targets to 0</span>
+<a id="__codelineno-0-805" name="__codelineno-0-805"></a>
+<a id="__codelineno-0-806" name="__codelineno-0-806"></a><span class="sd">                activity = network.run(lesioned_network) # or really, whatever you want!</span>
+<a id="__codelineno-0-807" name="__codelineno-0-807"></a><span class="sd">                return float(activity[index].mean())</span>
+<a id="__codelineno-0-808" name="__codelineno-0-808"></a>
+<a id="__codelineno-0-809" name="__codelineno-0-809"></a><span class="sd">            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)</span>
+<a id="__codelineno-0-810" name="__codelineno-0-810"></a>
+<a id="__codelineno-0-811" name="__codelineno-0-811"></a>
+<a id="__codelineno-0-812" name="__codelineno-0-812"></a><span class="sd">        objective_function_params (Optional[Dict]):</span>
+<a id="__codelineno-0-813" name="__codelineno-0-813"></a><span class="sd">            Kwargs for the objective_function. A dictionary pair of {&#39;index&#39;: index} will be added to this during</span>
+<a id="__codelineno-0-814" name="__codelineno-0-814"></a><span class="sd">            the process so your function can track the lesion effect.</span>
+<a id="__codelineno-0-815" name="__codelineno-0-815"></a>
+<a id="__codelineno-0-816" name="__codelineno-0-816"></a><span class="sd">        target_elements (Optional[list]): list of elements that you want to calculate the causal influence of.</span>
+<a id="__codelineno-0-817" name="__codelineno-0-817"></a>
+<a id="__codelineno-0-818" name="__codelineno-0-818"></a><span class="sd">        multiprocessing_method (str = &#39;joblib&#39;):</span>
+<a id="__codelineno-0-819" name="__codelineno-0-819"></a><span class="sd">            So far, two methods of parallelization is implemented, &#39;joblib&#39; and &#39;ray&#39; and the default method is joblib.</span>
+<a id="__codelineno-0-820" name="__codelineno-0-820"></a><span class="sd">            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their</span>
+<a id="__codelineno-0-821" name="__codelineno-0-821"></a><span class="sd">            documentations to see how to go for it.</span>
+<a id="__codelineno-0-822" name="__codelineno-0-822"></a>
+<a id="__codelineno-0-823" name="__codelineno-0-823"></a><span class="sd">        n_cores (int = -1):</span>
+<a id="__codelineno-0-824" name="__codelineno-0-824"></a><span class="sd">            Number of parallel games. Default is -1, which means all cores so it can make the system</span>
+<a id="__codelineno-0-825" name="__codelineno-0-825"></a><span class="sd">            freeze for a short period, if that happened then maybe go for -2, which means one msapy is</span>
+<a id="__codelineno-0-826" name="__codelineno-0-826"></a><span class="sd">            left out. Or really just specify the number of threads you want to use!</span>
+<a id="__codelineno-0-827" name="__codelineno-0-827"></a>
+<a id="__codelineno-0-828" name="__codelineno-0-828"></a><span class="sd">        n_permutations (int = 1000):</span>
+<a id="__codelineno-0-829" name="__codelineno-0-829"></a><span class="sd">            Number of permutations per node.</span>
+<a id="__codelineno-0-830" name="__codelineno-0-830"></a><span class="sd">            Didn&#39;t check it systematically yet but just based on random explorations</span>
+<a id="__codelineno-0-831" name="__codelineno-0-831"></a><span class="sd">            I&#39;d say something around 1000 is enough.</span>
+<a id="__codelineno-0-832" name="__codelineno-0-832"></a>
+<a id="__codelineno-0-833" name="__codelineno-0-833"></a><span class="sd">        permutation_seed (Optional[int] = None):</span>
+<a id="__codelineno-0-834" name="__codelineno-0-834"></a><span class="sd">            Sets the random seed of the sampling process. Default is None so if nothing is given every call results in</span>
+<a id="__codelineno-0-835" name="__codelineno-0-835"></a><span class="sd">            a different orderings.</span>
+<a id="__codelineno-0-836" name="__codelineno-0-836"></a>
+<a id="__codelineno-0-837" name="__codelineno-0-837"></a><span class="sd">        parallelize_over_games (bool = False): Whether to parallelize over games or parallelize over elements. Parallelizing</span>
+<a id="__codelineno-0-838" name="__codelineno-0-838"></a><span class="sd">            over the elements is generally faster. Defaults to False</span>
+<a id="__codelineno-0-839" name="__codelineno-0-839"></a>
+<a id="__codelineno-0-840" name="__codelineno-0-840"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-841" name="__codelineno-0-841"></a><span class="sd">        causal_influences (pd.DataFrame)</span>
+<a id="__codelineno-0-842" name="__codelineno-0-842"></a>
+<a id="__codelineno-0-843" name="__codelineno-0-843"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-844" name="__codelineno-0-844"></a>    <span class="n">target_elements</span> <span class="o">=</span> <span class="n">target_elements</span> <span class="k">if</span> <span class="n">target_elements</span> <span class="k">else</span> <span class="n">elements</span>
+<a id="__codelineno-0-845" name="__codelineno-0-845"></a>    <span class="n">objective_function_params</span> <span class="o">=</span> <span class="n">objective_function_params</span> <span class="k">if</span> <span class="n">objective_function_params</span> <span class="k">else</span> <span class="p">{}</span>
+<a id="__codelineno-0-846" name="__codelineno-0-846"></a>
+<a id="__codelineno-0-847" name="__codelineno-0-847"></a>    <span class="k">if</span> <span class="n">parallelize_over_games</span><span class="p">:</span>
+<a id="__codelineno-0-848" name="__codelineno-0-848"></a>        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">causal_influence_single_element</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span>
+<a id="__codelineno-0-849" name="__codelineno-0-849"></a>                                                   <span class="n">objective_function_params</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">,</span>
+<a id="__codelineno-0-850" name="__codelineno-0-850"></a>                                                   <span class="n">n_cores</span><span class="p">,</span> <span class="n">multiprocessing_method</span><span class="p">,</span>
+<a id="__codelineno-0-851" name="__codelineno-0-851"></a>                                                   <span class="n">permutation_seed</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">target_elements</span><span class="p">))]</span>
+<a id="__codelineno-0-852" name="__codelineno-0-852"></a>
+<a id="__codelineno-0-853" name="__codelineno-0-853"></a>    <span class="k">elif</span> <span class="n">multiprocessing_method</span> <span class="o">==</span> <span class="s1">&#39;ray&#39;</span><span class="p">:</span>
+<a id="__codelineno-0-854" name="__codelineno-0-854"></a>        <span class="k">if</span> <span class="n">n_cores</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-855" name="__codelineno-0-855"></a>            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;A zero or a negative n_cores was passed and ray doesn&#39;t like so &quot;</span>
+<a id="__codelineno-0-856" name="__codelineno-0-856"></a>                          <span class="s2">&quot;to fix that ray.init() will get no arguments, &quot;</span>
+<a id="__codelineno-0-857" name="__codelineno-0-857"></a>                          <span class="s2">&quot;which means use all cores as n_cores = -1 does for joblib.&quot;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-0-858" name="__codelineno-0-858"></a>            <span class="n">ray</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+<a id="__codelineno-0-859" name="__codelineno-0-859"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-860" name="__codelineno-0-860"></a>            <span class="n">ray</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">n_cores</span><span class="p">)</span>
+<a id="__codelineno-0-861" name="__codelineno-0-861"></a>
+<a id="__codelineno-0-862" name="__codelineno-0-862"></a>        <span class="n">result_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">ray</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">causal_influence_single_element</span><span class="p">)</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span>
+<a id="__codelineno-0-863" name="__codelineno-0-863"></a>                                                                         <span class="n">objective_function_params</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">,</span>
+<a id="__codelineno-0-864" name="__codelineno-0-864"></a>                                                                         <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;joblib&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-865" name="__codelineno-0-865"></a>                                                                         <span class="n">permutation_seed</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">target_elements</span><span class="p">)]</span>
+<a id="__codelineno-0-866" name="__codelineno-0-866"></a>
+<a id="__codelineno-0-867" name="__codelineno-0-867"></a>        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ray_iterator</span><span class="p">(</span><span class="n">result_ids</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">result_ids</span><span class="p">)):</span>
+<a id="__codelineno-0-868" name="__codelineno-0-868"></a>            <span class="k">pass</span>
+<a id="__codelineno-0-869" name="__codelineno-0-869"></a>
+<a id="__codelineno-0-870" name="__codelineno-0-870"></a>        <span class="n">results</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">result_ids</span><span class="p">)</span>
+<a id="__codelineno-0-871" name="__codelineno-0-871"></a>        <span class="n">ray</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+<a id="__codelineno-0-872" name="__codelineno-0-872"></a>
+<a id="__codelineno-0-873" name="__codelineno-0-873"></a>    <span class="k">elif</span> <span class="n">multiprocessing_method</span> <span class="o">==</span> <span class="s1">&#39;joblib&#39;</span><span class="p">:</span>
+<a id="__codelineno-0-874" name="__codelineno-0-874"></a>        <span class="n">results</span> <span class="o">=</span> <span class="p">(</span><span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="n">n_cores</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">causal_influence_single_element</span><span class="p">)(</span><span class="n">elements</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span>
+<a id="__codelineno-0-875" name="__codelineno-0-875"></a>                                                                                     <span class="n">objective_function_params</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">,</span>
+<a id="__codelineno-0-876" name="__codelineno-0-876"></a>                                                                                     <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;joblib&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-877" name="__codelineno-0-877"></a>                                                                                     <span class="n">permutation_seed</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">target_elements</span><span class="p">))))</span>
+<a id="__codelineno-0-878" name="__codelineno-0-878"></a>
+<a id="__codelineno-0-879" name="__codelineno-0-879"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-880" name="__codelineno-0-880"></a>        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">causal_influence_single_element</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span>
+<a id="__codelineno-0-881" name="__codelineno-0-881"></a>                                                   <span class="n">objective_function_params</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">,</span>
+<a id="__codelineno-0-882" name="__codelineno-0-882"></a>                                                   <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;joblib&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-883" name="__codelineno-0-883"></a>                                                   <span class="n">permutation_seed</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">target_elements</span><span class="p">))]</span>
+<a id="__codelineno-0-884" name="__codelineno-0-884"></a>
+<a id="__codelineno-0-885" name="__codelineno-0-885"></a>    <span class="n">_</span><span class="p">,</span> <span class="n">multi_scores</span><span class="p">,</span> <span class="n">is_timeseries</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<a id="__codelineno-0-886" name="__codelineno-0-886"></a>    <span class="n">shapley_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+<a id="__codelineno-0-887" name="__codelineno-0-887"></a>
+<a id="__codelineno-0-888" name="__codelineno-0-888"></a>    <span class="n">causal_influences</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">shapley_values</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="n">elements</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span>
+<a id="__codelineno-0-889" name="__codelineno-0-889"></a>        <span class="n">multi_scores</span> <span class="ow">or</span> <span class="n">is_timeseries</span><span class="p">)</span> <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">shapley_values</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">elements</span><span class="p">)</span>
+<a id="__codelineno-0-890" name="__codelineno-0-890"></a>    <span class="k">return</span> <span class="n">causal_influences</span><span class="o">.</span><span class="n">swaplevel</span><span class="p">()</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">multi_scores</span> <span class="k">else</span> <span class="n">causal_influences</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+              
+            </article>
+            
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href="../index.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: Home" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Home
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="interface.html" class="md-footer__link md-footer__link--next" aria-label="Next: Interface" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Interface
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      MIT License Copyright (c) 2021 <a href="https://kaysonfakhar.com/">Kayson</a>
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+      
+      
+    
+    <a href="https://github.com/kuffmode" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/kaysonfakhar" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.b97dbffb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.6c7ad80a.min.js"></script>
+      
+    
+  </body>
+</html>
