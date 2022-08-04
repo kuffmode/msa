@@ -1,4 +1,6 @@
 import numpy as np
+import pytest
+import ray
 from msapy import msa, utils as ut
 
 
@@ -60,29 +62,80 @@ def test_d_index():
         shapley_vector=shapley_table.mean()) == 0
 
 
-def test_interaction_2d():
-    interactions = msa.network_interaction_2d(
-        elements=list(contrib_dict.keys()),
-        n_permutations=1000,
-        objective_function=simple_with_interaction,
-        n_parallel_games=1)
+@pytest.mark.parametrize("n_parallel_games, multiprocessing_method", [(1, 'joblib'), (-1, 'joblib'), (2, 'ray')])
+def test_interaction_2d(n_parallel_games, multiprocessing_method):
+    if multiprocessing_method == "ray":
+        interactions = msa.network_interaction_2d(
+            elements=list(contrib_dict.keys()),
+            n_permutations=1000,
+            objective_function=ray.remote(simple_with_interaction),
+            n_parallel_games=n_parallel_games,
+            multiprocessing_method=multiprocessing_method,
+            random_seed=111)
+
+    else:
+        interactions = msa.network_interaction_2d(
+            elements=list(contrib_dict.keys()),
+            n_permutations=1000,
+            objective_function=simple_with_interaction,
+            n_parallel_games=n_parallel_games,
+            multiprocessing_method=multiprocessing_method,
+            random_seed=111)
+
     expected_interactions = np.array([[0, 87, 0, 0, 0], [87, 0, 0, 0, 0],
                                       [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]])
     assert np.allclose(expected_interactions, interactions, atol=1e-3)
 
 
-def test_estimate_causal_influence():
+@pytest.mark.parametrize("n_cores, multiprocessing_method, parallelize_over_games",
+                         [(1, 'joblib', True), (-1, 'joblib', True), (2, 'ray', True), (1, 'joblib', False), (-1, 'joblib', False), (2, 'ray', False)])
+def test_estimate_causal_influence(n_cores, multiprocessing_method, parallelize_over_games):
     true_causal_influences = np.random.normal(0, 5, (4, 4))
     np.fill_diagonal(true_causal_influences, 0)
 
     def objective_function_causal_influence(complements, index):
         return true_causal_influences[index].sum() - true_causal_influences[index, complements].sum()
-
-    calculated_causal_influences = msa.estimate_causal_influences(elements=list(range(4)),
-                                                                  n_permutations=1000,
-                                                                  objective_function=objective_function_causal_influence,
-                                                                  n_cores=1).values
+    if multiprocessing_method == "ray" and parallelize_over_games:
+        calculated_causal_influences = msa.estimate_causal_influences(elements=list(range(4)),
+                                                                      n_permutations=1000,
+                                                                      objective_function=ray.remote(
+                                                                          objective_function_causal_influence),
+                                                                      multiprocessing_method=multiprocessing_method,
+                                                                      parallelize_over_games=parallelize_over_games,
+                                                                      n_cores=n_cores).values
+    else:
+        calculated_causal_influences = msa.estimate_causal_influences(elements=list(range(4)),
+                                                                      n_permutations=1000,
+                                                                      objective_function=objective_function_causal_influence,
+                                                                      multiprocessing_method=multiprocessing_method,
+                                                                      parallelize_over_games=parallelize_over_games,
+                                                                      n_cores=n_cores).values
 
     np.fill_diagonal(calculated_causal_influences, 0)
 
     assert np.allclose(calculated_causal_influences, true_causal_influences)
+
+
+def test_interface_parallel_joblib():
+    shapley_table_parallel, _, _ = msa.interface(
+        elements=elements,
+        n_permutations=300,
+        objective_function=simple,
+        n_parallel_games=-1,
+        objective_function_params={'causes': cause},
+        random_seed=111)
+
+    assert shapley_table.equals(shapley_table_parallel)
+
+
+def test_interface_parallel_ray():
+    shapley_table_parallel, _, _ = msa.interface(
+        elements=elements,
+        n_permutations=300,
+        objective_function=ray.remote(simple),
+        n_parallel_games=2,
+        multiprocessing_method="ray",
+        objective_function_params={'causes': cause},
+        random_seed=111)
+
+    assert shapley_table.equals(shapley_table_parallel)

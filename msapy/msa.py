@@ -857,7 +857,7 @@ def estimate_causal_influences(elements: list,
                           "which means use all cores as n_cores = -1 does for joblib.", stacklevel=2)
             ray.init()
         else:
-            ray.init(n_cores)
+            ray.init(num_cpus = n_cores)
 
         result_ids = [ray.remote(causal_influence_single_element).remote(elements, objective_function,
                                                                          objective_function_params, n_permutations,
