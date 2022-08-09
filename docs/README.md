@@ -1,8 +1,4 @@
-<center><h3>(work in progress)</h3></center>
-
-
-<img align="left" src="images/Artboard%202.jpg" alt="msa logo" width="300"> 
-
+<img align="left" src="https://github.com/kuffmode/msa/blob/main/docs/images/Artboard%202.jpg?raw=true" alt="msa logo" width="300"> 
 
 TLDR: 
 A Game theoretical approach for calculating the contribution of each element of a system (here network models of the brain) to a system-wide description of the system. The classic neuroscience example: How much each brain region is causally relevant to an arbitrary cognitive function. 
@@ -127,9 +123,10 @@ For this one, all you have to do is to provide your elements, the objective func
  
 ## TODO (Interested in Contributing?):
 - More estimation methods, for example see: [amiratag/neuronshapley](https://github.com/amiratag/neuronshapley).
-- Integrating `ray` with `ray cluster`.
+- GPU compatibilty
 - Providing built-in objective functions for common use-cases.
-- Proper documentation page.
+- Improved documentation
+- More Tests
 ## Cite:
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5636435.svg)](https://doi.org/10.5281/zenodo.5636435)
