@@ -13,7 +13,7 @@ As you probably noticed this won't be feasible to calclulate as for example, it 
 
 [Keinan, Alon, Ben Sandbank, Claus C. Hilgetag, Isaac Meilijson, and Eytan Ruppin. 2006. “Axiomatic Scalable Neurocontroller Analysis via the Shapley Value.” Artificial Life 12 (3): 333–52.](https://direct.mit.edu/artl/article/12/3/333/2530/Axiomatic-Scalable-Neurocontroller-Analysis-via)
 
-And our own recent work [Kayson Fakhar, Claus C. Hilgetag. 2021. Systematic Perturbation of an Artificial Neural Network: A Step Towards Quantifying Causal Contributions in The Brain. bioRxiv 2021.11.04.467251](https://doi.org/10.1101/2021.11.04.467251)
+And our own recent work [Fakhar K, Hilgetag CC. Systematic perturbation of an artificial neural network: A step towards quantifying causal contributions in the brain. PLoS Comput Biol. 2022;18: e1010250. doi:10.1371/journal.pcbi.1010250](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010250)
 ## Installation:
 The easiest way is to `pip install msapy`, I wrote this package in Python `3.9` and tried it on `3.8` so, it's safe to say you need at least a Python `3.8` so easy-installing it on older versions is not an option. Alternatively you can clone the repository (`git clone https://github.com/kuffmode/msa.git`, move to the `msa` folder (`cd msa`), and run `pip install .` In case the requirements weren't installed automatically you can also use the command `pip install -r requirements.txt` and then let me know so I can fix it!
 ## How it works:
