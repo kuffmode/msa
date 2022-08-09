@@ -123,28 +123,20 @@ For this one, all you have to do is to provide your elements, the objective func
  
 ## TODO (Interested in Contributing?):
 - More estimation methods, for example see: [amiratag/neuronshapley](https://github.com/amiratag/neuronshapley).
-- GPU compatibilty
+- GPU and HPC compatibilty
 - Providing built-in objective functions for common use-cases.
 - Improved documentation
 - More Tests
+
 ## Cite:
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5636435.svg)](https://doi.org/10.5281/zenodo.5636435)
-
-Kayson Fakhar. (2021). MSA: A compact Python package for Multiperturbation Shapley value Analysis. Zenodo. https://doi.org/10.5281/zenodo.5636435
-
 ```
-BibTeX:
-@software{kayson_fakhar_2021_5636435,
-  author       = {Kayson Fakhar},
-  title        = {{MSA: A compact Python package for 
-                   Multiperturbation Shapley value Analysis.}},
-  month        = nov,
-  year         = 2021,
-  publisher    = {Zenodo},
-  version      = {v0.0.2},
-  doi          = {10.5281/zenodo.5636435},
-  url          = {https://doi.org/10.5281/zenodo.5636435}
+@misc{MSA,
+  author = {Kayson Fakhar and Shrey Dixit},
+  title = {MSA: A compact Python package for Multiperturbation Shapley value Analysis.},
+  year = {2021},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/kuffmode/msa}},
 }
 ```
 
