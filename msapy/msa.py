@@ -1,3 +1,4 @@
+import importlib
 import warnings
 from typing import Callable, Optional, Dict, Tuple, Union
 from joblib import Parallel, delayed
@@ -5,7 +6,6 @@ import numpy as np
 import pandas as pd
 from ordered_set import OrderedSet
 from itertools import combinations
-import ray
 from typeguard import typechecked
 from tqdm import tqdm
 
@@ -851,13 +851,17 @@ def estimate_causal_influences(elements: list,
                                                    permutation_seed, index, element) for index, element in tqdm(enumerate(target_elements))]
 
     elif multiprocessing_method == 'ray':
+        if importlib.util.find_spec("ray") is None:
+            raise ImportError("The ray package is required to run this algorithm")
+        
+        import ray
         if n_cores <= 0:
             warnings.warn("A zero or a negative n_cores was passed and ray doesn't like so "
                           "to fix that ray.init() will get no arguments, "
                           "which means use all cores as n_cores = -1 does for joblib.", stacklevel=2)
             ray.init()
         else:
-            ray.init(n_cores)
+            ray.init(num_cpus = n_cores)
 
         result_ids = [ray.remote(causal_influence_single_element).remote(elements, objective_function,
                                                                          objective_function_params, n_permutations,

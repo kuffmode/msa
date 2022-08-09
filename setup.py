@@ -4,17 +4,8 @@ DESCRIPTION = "Multi-perturbation Shapley value Analysis (MSA)"
 with open("docs/README.md", encoding="utf-8") as f:
     LONG_DESCRIPTION = f.read()
 
-base_packages = ["pandas~=1.3.3",
-                 "typeguard~=2.13.0",
-                 "joblib~=1.1.0",
-                 "numpy~=1.20.3",
-                 "setuptools~=58.0.4",
-                 "tqdm~=4.62.3",
-                 "ray~=1.7.0",
-                 "ordered-set ~= 4.0.2",
-                 "matplotlib ~= 3.4.3",
-                 "seaborn ~= 0.11.2"
-                 ]
+with open("requirements.txt", "r") as f:
+    base_packages = f.read().split("\n")
 
 test_packages = ["pytest~=6.2.5"]
 
