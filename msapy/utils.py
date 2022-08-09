@@ -1,10 +1,10 @@
 import gc
+import importlib
 import warnings
 from typing import Any, Generator, Iterable, Callable, Optional, Dict, Tuple
 
 import numpy as np
 import pandas as pd
-import ray
 from joblib import Parallel, delayed
 from joblib.externals.loky import get_reusable_executor
 from ordered_set import OrderedSet
@@ -115,6 +115,10 @@ def parallelized_take_contributions(*,
                       "Length of the first element in complement space is 1, that is usually n_elements-1",
                       stacklevel=2)
     if multiprocessing_method == 'ray':
+        if importlib.util.find_spec("ray") is None:
+            raise ImportError("The ray package is required to run this algorithm")
+        
+        import ray
         if type(objective_function) is not ray.remote_function.RemoteFunction:
             raise ValueError("Objective function is not decorated with ray. You probably forgot @ray.remote")
 
@@ -134,10 +138,6 @@ def parallelized_take_contributions(*,
         ray.shutdown()
 
     elif multiprocessing_method == 'joblib':
-        if type(objective_function) is ray.remote_function.RemoteFunction:
-            raise ValueError('The objective function is decorated with ray. '
-                             'Either comment @ray.remote or use ray as the multiprocessing_method')
-
         results = (Parallel(n_jobs=n_cores)(delayed(objective_function)(
             complement, **objective_function_params) for complement in tqdm(complement_space, total=len(complement_space), desc='Playing the games: ')))
     else:

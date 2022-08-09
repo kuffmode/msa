@@ -1,6 +1,5 @@
 from msapy import msa, utils as ut
 import pytest
-import ray
 
 
 @pytest.mark.parametrize("n_permutations", [-1, 0, -100])
