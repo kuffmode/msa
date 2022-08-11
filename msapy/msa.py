@@ -279,7 +279,6 @@ def take_contributions(*,
 def make_shapley_values(*,
                         contributions: Dict,
                         permutation_space: list,
-                        pair: Optional[Tuple] = None,
                         lesioned: Optional[any] = None) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
@@ -331,14 +330,7 @@ def make_shapley_values(*,
         # if the set is small it's possible that the permutation space exhausts the combination space so:
         if permutation in shapley_table:
             continue
-        for index, element in enumerate(permutation):
-            if skip_next:
-                skip_next = False
-                continue
-            if pair and element == pair[0]:
-                index += 1
-                skip_next = True
-
+        for index, _ in enumerate(permutation):
             including = frozenset(permutation[:index + 1]) - lesioned
             excluding = frozenset(permutation[:index]) - lesioned
             isolated_contributions.append(

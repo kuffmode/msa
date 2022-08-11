@@ -17,13 +17,28 @@ def simple(complements):
 
 # ------------------------------#
 elements = ['a', 'b', 'c']
-shapley_table, contributions, lesions = msa.interface(
-    elements=elements,
-    n_permutations=300,
-    objective_function=simple,
-    n_parallel_games=1,
-    random_seed=111)
+
+
+@pytest.fixture(scope="session")
+def shapley_table():
+    return msa.interface(
+        elements=elements,
+        n_permutations=300,
+        objective_function=simple,
+        n_parallel_games=1,
+        random_seed=111)[0]
+
+
+@pytest.fixture(scope="session")
+def shapley_table_parallel():
+    return msa.interface(
+        elements=elements,
+        n_permutations=300,
+        objective_function=simple,
+        n_parallel_games=-1,
+        random_seed=111)[0]
 # ------------------------------#
+
 
 expected_contributions = {("score_1", "a"): 1, ("score_2", "a"): 0,
                           ("score_1", "b"): 0, ("score_2", "b"): 1,
@@ -31,6 +46,12 @@ expected_contributions = {("score_1", "a"): 1, ("score_2", "a"): 0,
 
 
 @pytest.mark.parametrize("score, element", list(expected_contributions.keys()))
-def test_contributions(score, element):
+def test_contributions(score, element, shapley_table):
     assert shapley_table.loc[score][element].mean(
+    ) == expected_contributions[(score, element)]
+
+
+@pytest.mark.parametrize("score, element", list(expected_contributions.keys()))
+def test_contributions_parallel(score, element, shapley_table_parallel):
+    assert shapley_table_parallel.loc[score][element].mean(
     ) == expected_contributions[(score, element)]
