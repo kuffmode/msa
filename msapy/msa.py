@@ -1,6 +1,6 @@
 import importlib
 import warnings
-from typing import Callable, Optional, Dict, Tuple, Union
+from typing import Callable, Optional, Dict, Tuple
 from joblib import Parallel, delayed
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ from typeguard import typechecked
 from tqdm import tqdm
 
 from msapy import utils as ut
-from msapy.checks import _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
+from msapy.checks import _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
 
 
 @typechecked
@@ -64,14 +64,19 @@ def make_permutation_space(*,
     _check_valid_elements(elements)
     _check_valid_n_permutations(n_permutations)
     # ------------------------------#
+
+    # create a numpy random number generator if one is not passed
     if not rng:
         rng = np.random.default_rng(random_seed) if random_seed \
             else np.random.default_rng()
+
+    # return n_permutations random permutations if pair argument is not passed
     if not pair:
         permutation_space = [tuple(rng.permutation(elements))
                              for _ in range(n_permutations)]
         return permutation_space
 
+    # if the pair argument is passed, then all permutations will have those two elements together using the following logic
     elements = [e for e in elements if e != pair[0]]
     permutation_space = []
 
@@ -120,14 +125,17 @@ def make_combination_space(*, permutation_space: list, pair: Optional[Tuple] = N
 
     _check_valid_permutation_space(permutation_space)
 
+    # if we have an element that needs to be lesioned in every combination, then we store it in a set so that taking a difference becomes easier and efficient
     lesioned = set(lesioned) if lesioned else set()
 
     combination_space = OrderedSet()
 
+    # iterate over all permutations and generate including and excluding combinations
     for permutation in permutation_space:
+        # we need this parameter if we have a pair so that the pair of elements are always together
         skip_next = False
-        # we really don't care about the element itself here
         for index, element in enumerate(permutation):
+            # logic to skip the next element if we encounter a pair element
             if skip_next:
                 skip_next = False
                 continue
@@ -166,18 +174,12 @@ def make_complement_space(*,
         (OrderedSet): complements to be passed for lesioning.
     """
     _check_valid_elements(elements)
-
     elements = frozenset(elements)
-    diff = max(combination_space, key=len) ^ elements - \
-        {lesioned if lesioned else None}
-
-    # ------------------------------#
-    if len(diff) != 0:
-        raise ValueError(f"Elements in the combination space are different from what's in the elements list."
-                         f"The symmetric difference-set is: {list(diff)}")
-    # ------------------------------#
+    _check_valid_combination_space(combination_space, elements, lesioned)
 
     complement_space = OrderedSet()
+
+    # iterate over all combinations and take their difference from set elements to find complements
     for combination in combination_space:
         complement_space.add(tuple(elements.difference(combination)))
     return complement_space
@@ -265,9 +267,8 @@ def take_contributions(*,
                       stacklevel=2)
     # ------------------------------#
 
-    for combination in tqdm(combination_space):
-        # lesion everything but the target coalition
-        complement = tuple(elements.difference(combination))
+    # run the objective function over all complement space
+    for combination, complement in tqdm(zip(combination_space, complement_space)):
         result = objective_function(complement, **objective_function_params)
 
         contributions[combination] = result
@@ -298,9 +299,6 @@ def make_shapley_values(*,
         permutation_space (list):
             Should be the same passed to make_combination_space.
 
-        pair (Optional[Tuple]):
-            pair of elements that will always be together in every combination
-
         lesioned (Optional[any]):
             leseioned element that will not be present in any combination
 
@@ -313,9 +311,9 @@ def make_shapley_values(*,
         The index at `level=1` will be the timestamps
     """
     _check_valid_permutation_space(permutation_space)
-    arbitrary_contrib, multi_scores, is_timeseries = _get_contribution_type(
-        contributions)
+    arbitrary_contrib, multi_scores, is_timeseries = _get_contribution_type(contributions)
 
+    # if it's a multi score problem, then we make all the contributions to numpy arrays for efficient calculations later
     if multi_scores:
         scores = list(arbitrary_contrib.keys())
         contributions = {k: np.array(list(v.values()))
@@ -323,29 +321,35 @@ def make_shapley_values(*,
 
     lesioned = set(lesioned) if lesioned else set()
     shapley_table = {}
+
     for permutation in permutation_space:
-        skip_next = False
         isolated_contributions = []  # got to be a better way!
 
         # if the set is small it's possible that the permutation space exhausts the combination space so:
         if permutation in shapley_table:
             continue
+
+        # iterate over all elements in the permutation to calculate their isolated contributions
         for index, _ in enumerate(permutation):
             including = frozenset(permutation[:index + 1]) - lesioned
             excluding = frozenset(permutation[:index]) - lesioned
-            isolated_contributions.append(
-                contributions[including] - contributions[excluding])
+
+            # the isolated contribution of an element is the difference of contribution with that element and without that element
+            isolated_contributions.append(contributions[including] - contributions[excluding])
+
         shapley_table[permutation] = np.array(isolated_contributions)
 
+    # post processing of shapley values based on what type of contribution it is. The format of output will vary based on if the
+    # values are multi-scores, timeseries, etc.
     if not multi_scores:
-        shapley_values = pd.DataFrame([
-            dict(zip(permutations, shapleys)) for permutations, shapleys in shapley_table.items()])
+        shapley_values = pd.DataFrame([dict(zip(permutations, shapleys))
+                                       for permutations, shapleys in shapley_table.items()])
         return _process_timeseries_shapley(shapley_values) if is_timeseries else shapley_values
 
     shapley_values = []
     for i in range(len(arbitrary_contrib)):
-        shapley_values.append(pd.DataFrame([
-            dict(zip(permutations, shapleys[:, i])) for permutations, shapleys in shapley_table.items()]))
+        shapley_values.append(pd.DataFrame([dict(zip(permutations, shapleys[:, i]))
+                                            for permutations, shapleys in shapley_table.items()]))
 
     shapley_values = pd.concat(
         shapley_values, keys=scores) if multi_scores else shapley_values
@@ -450,10 +454,11 @@ def interface(*,
     Of course, it makes more sense to compare the lesion effects with the intact system but who am I to judge.
     """
 
+    # create a numpy random number generator if one is not passed
     if not rng:
-        rng = np.random.default_rng(
-            random_seed) if random_seed else np.random.default_rng()
+        rng = np.random.default_rng(random_seed) if random_seed else np.random.default_rng()
 
+    # create a permutation_space if one is not passed
     if not permutation_space:
         permutation_space = make_permutation_space(elements=elements,
                                                    n_permutations=n_permutations,
@@ -463,8 +468,9 @@ def interface(*,
         warnings.warn("A Permutation space is given so n_permutations will fall back to what's specified there.",
                       stacklevel=2)
 
-    combination_space = make_combination_space(
-        permutation_space=permutation_space, pair=pair, lesioned=lesioned)
+    combination_space = make_combination_space(permutation_space=permutation_space,
+                                               pair=pair,
+                                               lesioned=lesioned)
     complement_space = make_complement_space(combination_space=combination_space,
                                              elements=elements,
                                              lesioned=lesioned)
@@ -517,7 +523,7 @@ def interaction_2d(*,
 
         elements (list): List of the players (elements). Can be strings (names), integers (indicies), and tuples.
 
-        pair (tuple): the pair of elements we want to analyze the interaction between
+        pair (tuple): the pair of elements we want to analyze the interaction between i.e. element i and j
 
         objective_function (Callable):
             The game (in-silico experiment). It should get the complement set and return one numeric value
@@ -589,16 +595,22 @@ def interaction_2d(*,
                       "random_seed": random_seed,
                       "n_parallel_games": n_parallel_games}
 
-    shapley_A, _, _ = interface(**interface_args, lesioned=pair[1])
-    gamma_A = _get_gamma(shapley_A, pair[0]).sum()
+    # calculate the shapley values with element j lesioned
+    shapley_i, _, _ = interface(**interface_args, lesioned=pair[1])
+    # get the shapley value of element i with element j leasioned
+    gamma_i = _get_gamma(shapley_i, pair[0]).sum()
 
-    shapley_B, _, _ = interface(**interface_args, lesioned=pair[0])
-    gamma_B = _get_gamma(shapley_B, pair[1]).sum()
+    # calculate the shapley values with element i lesioned
+    shapley_j, _, _ = interface(**interface_args, lesioned=pair[0])
+    # get the shapley value of element j with element i leasioned
+    gamma_j = _get_gamma(shapley_j, pair[1]).sum()
 
-    shapley_AB, _, _ = interface(**interface_args, pair=pair)
-    gamma_AB = _get_gamma(shapley_AB, pair).sum()
+    # calculate the shapley values with element i and j together in every combination
+    shapley_ij, _, _ = interface(**interface_args, pair=pair)
+    # get the sum of the shapley value of element i and j
+    gamma_ij = _get_gamma(shapley_ij, pair).sum()
 
-    return gamma_AB, gamma_A, gamma_B
+    return gamma_ij, gamma_i, gamma_j
 
 
 @typechecked
@@ -688,6 +700,8 @@ def network_interaction_2d(*,
         np.ndarray: the interaction matrix
     """
     elements_idx = list(range(len(elements)))
+
+    # create a list of pairs for wich we'll calculate the 2d interaction. By default, all possible pairs are considered unless specified otherwise
     all_pairs = [(elements.index(x), elements.index(y))
                  for x, y in pairs] if pairs else combinations(elements_idx, 2)
 
@@ -702,6 +716,7 @@ def network_interaction_2d(*,
 
     interactions = np.zeros((len(elements), len(elements)))
 
+    # iterate over all the pairs to run interaction_2d
     for x, y in tqdm(all_pairs, desc="Running interface 2d for all pair of nodes:"):
         gammaAB, gammaA, gammaB = interaction_2d(pair=(elements[x], elements[y]),
                                                  **interface_args)
@@ -836,6 +851,8 @@ def estimate_causal_influences(elements: list,
     target_elements = target_elements if target_elements else elements
     objective_function_params = objective_function_params if objective_function_params else {}
 
+    # run causal_influence_single_element for all target elements.
+
     if parallelize_over_games:
         results = [causal_influence_single_element(elements, objective_function,
                                                    objective_function_params, n_permutations,
@@ -844,8 +861,8 @@ def estimate_causal_influences(elements: list,
 
     elif multiprocessing_method == 'ray':
         if importlib.util.find_spec("ray") is None:
-            raise ImportError("The ray package is required to run this algorithm")
-        
+            raise ImportError("The ray package is required to run this algorithm. Install and use at your own risk.")
+
         import ray
         if n_cores <= 0:
             warnings.warn("A zero or a negative n_cores was passed and ray doesn't like so "
@@ -853,7 +870,7 @@ def estimate_causal_influences(elements: list,
                           "which means use all cores as n_cores = -1 does for joblib.", stacklevel=2)
             ray.init()
         else:
-            ray.init(num_cpus = n_cores)
+            ray.init(num_cpus=n_cores)
 
         result_ids = [ray.remote(causal_influence_single_element).remote(elements, objective_function,
                                                                          objective_function_params, n_permutations,
@@ -866,17 +883,11 @@ def estimate_causal_influences(elements: list,
         results = ray.get(result_ids)
         ray.shutdown()
 
-    elif multiprocessing_method == 'joblib':
+    else:
         results = (Parallel(n_jobs=n_cores)(delayed(causal_influence_single_element)(elements, objective_function,
                                                                                      objective_function_params, n_permutations,
                                                                                      1, 'joblib',
                                                                                      permutation_seed, index, element) for index, element in tqdm(enumerate(target_elements))))
-
-    else:
-        results = [causal_influence_single_element(elements, objective_function,
-                                                   objective_function_params, n_permutations,
-                                                   1, 'joblib',
-                                                   permutation_seed, index, element) for index, element in tqdm(enumerate(target_elements))]
 
     _, multi_scores, is_timeseries = results[0]
     shapley_values = [r[0] for r in results]
