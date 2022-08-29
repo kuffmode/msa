@@ -1,3 +1,4 @@
+from re import S
 from msapy import utils as ut, plottings as pl
 import pandas as pd
 import numpy as np
@@ -5,6 +6,10 @@ import matplotlib.pyplot as plt
 
 
 class ShapleyTable(pd.DataFrame):
+    @property
+    def _constructor(self):
+        return ShapleyTable
+
     @property
     def shapley_values(self):
         return self.mean()
@@ -28,7 +33,11 @@ class ShapleyTable(pd.DataFrame):
 
 class ShapleyTableMultiScores(pd.DataFrame):
     @property
-    def shapley_values(self, score=None):
+    def _constructor(self):
+        return ShapleyTableMultiScores
+
+    @property
+    def shapley_values(self):
         return self.groupby(level=0).mean()
 
     def get_shapley_table_score(self, score):
@@ -40,6 +49,10 @@ class ShapleyTableMultiScores(pd.DataFrame):
 
 
 class ShapleyTableTimeSeries(pd.DataFrame):
+    @property
+    def _constructor(self):
+        return ShapleyTableTimeSeries
+
     @classmethod
     def from_dataframe(cls, shapley_table):
         num_permutation, num_nodes = shapley_table.shape
@@ -49,10 +62,9 @@ class ShapleyTableTimeSeries(pd.DataFrame):
         data = data.transpose((0, 2, 1)).reshape((-1, num_nodes))
 
         shapley_table = pd.DataFrame(data=data,
-                                    index=pd.MultiIndex.from_product([range(num_permutation), range(num_timestamps)], names=[None, "timestamp"]),
-                                    columns=shapley_table.columns
-                                    )
-
+                                     index=pd.MultiIndex.from_product([range(num_permutation), range(num_timestamps)], names=[None, "timestamp"]),
+                                     columns=shapley_table.columns
+                                     )
         return cls(shapley_table)
 
     @property
