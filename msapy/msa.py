@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from msapy import utils as ut
 from msapy.checks import _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
+from msapy.datastructures import ShapleyTable, ShapleyTableMultiScores, ShapleyTableTimeSeries
 
 
 @typechecked
@@ -277,7 +278,7 @@ def take_contributions(*,
 
 
 @typechecked
-def make_shapley_values(*,
+def get_shapley_table(*,
                         contributions: Dict,
                         permutation_space: list,
                         lesioned: Optional[any] = None) -> pd.DataFrame:
@@ -342,19 +343,18 @@ def make_shapley_values(*,
     # post processing of shapley values based on what type of contribution it is. The format of output will vary based on if the
     # values are multi-scores, timeseries, etc.
     if not multi_scores:
-        shapley_values = pd.DataFrame([dict(zip(permutations, shapleys))
+        shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
                                        for permutations, shapleys in shapley_table.items()])
-        return _process_timeseries_shapley(shapley_values) if is_timeseries else shapley_values
+        return ShapleyTableTimeSeries.from_dataframe(shapley_table) if is_timeseries else ShapleyTable(shapley_table)
 
     shapley_values = []
     for i in range(len(arbitrary_contrib)):
         shapley_values.append(pd.DataFrame([dict(zip(permutations, shapleys[:, i]))
                                             for permutations, shapleys in shapley_table.items()]))
 
-    shapley_values = pd.concat(
-        shapley_values, keys=scores) if multi_scores else shapley_values
+    shapley_table = pd.concat(shapley_values, keys=scores)
 
-    return shapley_values
+    return ShapleyTableMultiScores(shapley_table)
 
 
 @typechecked
@@ -490,10 +490,10 @@ def interface(*,
             objective_function=objective_function,
             objective_function_params=objective_function_params)
 
-    shapley_values = make_shapley_values(contributions=contributions,
-                                         permutation_space=permutation_space,
-                                         lesioned=lesioned)[elements]
-    return shapley_values, contributions, lesion_effects
+    shapley_table = get_shapley_table(contributions=contributions,
+                                      permutation_space=permutation_space,
+                                      lesioned=lesioned)[elements]
+    return shapley_table, contributions, lesion_effects
 
 
 @typechecked
@@ -990,20 +990,3 @@ def causal_influence_single_element(elements, objective_function,
     else:
         shapley_value = shapley_value.mean()
     return shapley_value, multi_scores, is_timeseries
-
-
-@typechecked
-def _process_timeseries_shapley(shapley_values: pd.DataFrame) -> pd.DataFrame:
-    num_permutation, num_nodes = shapley_values.shape
-    data = np.stack(shapley_values.values.flatten())
-    num_timestamps = data.shape[-1]
-    data = data.reshape(num_permutation, num_nodes, -1)
-    data = data.transpose((0, 2, 1)).reshape((-1, num_nodes))
-
-    shapley_values = pd.DataFrame(data=data,
-                                  index=pd.MultiIndex.from_product(
-                                      [range(num_permutation), range(num_timestamps)], names=[None, "timestamp"]),
-                                  columns=shapley_values.columns
-                                  )
-
-    return shapley_values
