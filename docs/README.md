@@ -103,10 +103,13 @@ contributions, lesion_effects = msa.take_contributions(elements=nodes,
 Both `contributions` and `lesion_effects` are the same values just addressed differently. For example, if the contribution of coalition `{'B', 'C'}` is 5 points then you can also say the effect of lesioning coalition `{'A', 'D'}` is 5 points. This by itself is not that informative but if you know the contribution of the grand coalition (intact system) then you can claim that the effect of lesioning `{'A', 'D'}` is a drop of some performance from x to 5.
 
 Lastly, you can calculate Shapley values like:
+
 ```python
-shapley_table = msa.make_shapley_values(contributions=contributions,permutation_space=permutation_space)
+import msa
+
+shapley_table = msa.get_shapley_table(contributions=contributions, permutation_space=permutation_space)
 ```
-Which gives you a `pd.DataFrame` to work with.
+Which gives you a `ShapleyTable` data structure which is a wrapper around `pd.DataFrame` to work with.
 
 ## The Interface:
 To make things easier, msa comes with an interface function:

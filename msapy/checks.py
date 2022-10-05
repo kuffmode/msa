@@ -38,6 +38,17 @@ def _check_valid_n_permutations(n_permutations):
                       stacklevel=2)
 
 
+def _check_valid_combination_space(combination_space, elements, lesioned):
+    diff = max(combination_space, key=len) ^ elements - \
+        {lesioned if lesioned else None}
+
+    # ------------------------------#
+    if len(diff) != 0:
+        raise ValueError(f"Elements in the combination space are different from what's in the elements list."
+                         f"The symmetric difference-set is: {list(diff)}")
+    # ------------------------------#
+
+
 @typechecked
 def _get_contribution_type(contributions: dict) -> Tuple[Union[dict, np.number, Number, np.ndarray], bool, bool]:
 

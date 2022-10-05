@@ -14,7 +14,8 @@ def generate_wave_data(amp_freq_pairs, timestamps, sampling_rate):
     return data
 
 
-def test_contributions():
+@pytest.mark.parametrize("n_parallel_games", [1, -1])
+def test_contributions(n_parallel_games):
     data, final_wave, elements = prepare_data()
 
     def score_function(complements):
@@ -24,12 +25,14 @@ def test_contributions():
         elements=elements,
         n_permutations=5_000,
         objective_function=score_function,
-        n_parallel_games=-1)
+        n_parallel_games=n_parallel_games)
 
     assert np.allclose(shapley_table.groupby(level=1).mean(), data.T)
 
 
-def test_estimate_causal_influence():
+@pytest.mark.parametrize("n_cores, multiprocessing_method, parallelize_over_games",
+                         [(1, 'joblib', True), (-1, 'joblib', True), (1, 'joblib', False), (-1, 'joblib', False)])
+def test_estimate_causal_influence(n_cores, multiprocessing_method, parallelize_over_games):
     true_causal_influences = np.random.normal(0, 5, (4, 4, 100))
 
     true_causal_influences[np.diag_indices(4)] = 0
@@ -40,7 +43,9 @@ def test_estimate_causal_influence():
     estimated_causal_influences = msa.estimate_causal_influences(elements=list(range(4)),
                                                                  n_permutations=10000,
                                                                  objective_function=objective_function_causal_influence,
-                                                                 n_cores=1)
+                                                                 multiprocessing_method=multiprocessing_method,
+                                                                 parallelize_over_games=parallelize_over_games,
+                                                                 n_cores=n_cores)
 
     estimated_causal_influences = estimated_causal_influences.groupby(
         level=0).mean().values
