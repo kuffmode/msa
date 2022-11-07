@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from msapy import utils as ut
 from msapy.checks import _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
-from msapy.datastructures import ShapleyTable, ShapleyTableMultiScores, ShapleyTableTimeSeries
+from msapy.datastructures import ShapleyTable, ShapleyTableMultiScores, ShapleyTableND, ShapleyTableTimeSeries
 
 
 @typechecked
@@ -312,10 +312,10 @@ def get_shapley_table(*,
         The index at `level=1` will be the timestamps
     """
     _check_valid_permutation_space(permutation_space)
-    arbitrary_contrib, multi_scores, is_timeseries = _get_contribution_type(contributions)
+    contribution_type, arbitrary_contrib = _get_contribution_type(contributions)
 
     # if it's a multi score problem, then we make all the contributions to numpy arrays for efficient calculations later
-    if multi_scores:
+    if contribution_type == 'multi_scores':
         scores = list(arbitrary_contrib.keys())
         contributions = {k: np.array(list(v.values()))
                          for k, v in contributions.items()}
@@ -342,10 +342,17 @@ def get_shapley_table(*,
 
     # post processing of shapley values based on what type of contribution it is. The format of output will vary based on if the
     # values are multi-scores, timeseries, etc.
-    if not multi_scores:
+    if contribution_type == 'nd':
+        for permutation in shapley_table:
+            shapley_table[permutation] = shapley_table[permutation].reshape(shapley_table[permutation].shape[0], -1)
         shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
                                        for permutations, shapleys in shapley_table.items()])
-        return ShapleyTableTimeSeries.from_dataframe(shapley_table) if is_timeseries else ShapleyTable(shapley_table)
+        return ShapleyTableND.from_dataframe(shapley_table, arbitrary_contrib.shape)
+
+    if contribution_type != 'multi_scores':
+        shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
+                                       for permutations, shapleys in shapley_table.items()])
+        return ShapleyTableTimeSeries.from_dataframe(shapley_table) if (contribution_type=="timeseries") else ShapleyTable(shapley_table)
 
     shapley_values = []
     for i in range(len(arbitrary_contrib)):
@@ -889,12 +896,11 @@ def estimate_causal_influences(elements: list,
                                                                                      1, 'joblib',
                                                                                      permutation_seed, index, element) for index, element in tqdm(enumerate(target_elements))))
 
-    _, multi_scores, is_timeseries = results[0]
+    _, contribution_type = results[0]
     shapley_values = [r[0] for r in results]
 
-    causal_influences = pd.concat(shapley_values, keys=elements) if (
-        multi_scores or is_timeseries) else pd.DataFrame(shapley_values, columns=elements)
-    return causal_influences.swaplevel().sort_index(level=0) if multi_scores else causal_influences
+    causal_influences = pd.DataFrame(shapley_values, columns=elements) if contribution_type=="scaler" else pd.concat(shapley_values, keys=elements)
+    return causal_influences.swaplevel().sort_index(level=0) if contribution_type=="multi_scores" else causal_influences
 
 
 def causal_influence_single_element(elements, objective_function,
@@ -973,7 +979,7 @@ def causal_influence_single_element(elements, objective_function,
     # Takes the target out of the to_be_lesioned list
     without_target = set(elements).difference({element})
 
-    shapley_value, contributions, _ = interface(n_permutations=n_permutations,
+    shapley_table, contributions, _ = interface(n_permutations=n_permutations,
                                                 elements=list(without_target),
                                                 objective_function=objective_function,
                                                 objective_function_params=objective_function_params,
@@ -981,12 +987,8 @@ def causal_influence_single_element(elements, objective_function,
                                                 multiprocessing_method=multiprocessing_method,
                                                 random_seed=permutation_seed)
 
-    _, multi_scores, is_timeseries = _get_contribution_type(contributions)
+    contribution_type, _ = _get_contribution_type(contributions)
 
-    if multi_scores:
-        shapley_value = shapley_value.groupby(level=0).mean()
-    elif is_timeseries:
-        shapley_value = shapley_value.groupby(level=1).mean()
-    else:
-        shapley_value = shapley_value.mean()
-    return shapley_value, multi_scores, is_timeseries
+    if contribution_type in ("scaler", "multi_scores"):
+        return shapley_table.shapley_values, contribution_type
+    return shapley_table.shapley_modes, contribution_type

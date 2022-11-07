@@ -50,25 +50,30 @@ def _check_valid_combination_space(combination_space, elements, lesioned):
 
 
 @typechecked
-def _get_contribution_type(contributions: dict) -> Tuple[Union[dict, np.number, Number, np.ndarray], bool, bool]:
+def _get_contribution_type(contributions: dict) -> Tuple[str, Union[dict, np.number, Number, np.ndarray]]:
 
     if not _is_homogeneous_list(list(contributions.values())):
         raise ValueError(
             "Objective function returned values of different data types")
 
     arbitrary_contribution = next(iter(contributions.values()))
-    multi_scores = isinstance(arbitrary_contribution, dict)
-    is_timeseries = _is_iterable(arbitrary_contribution) and (not multi_scores)
 
-    if is_timeseries and not _is_number(arbitrary_contribution[0]):
+    if isinstance(arbitrary_contribution, dict):
+        return "multi_scores", arbitrary_contribution
+    
+    if isinstance(arbitrary_contribution, np.ndarray):
+        if len(arbitrary_contribution.shape) > 1:
+            return "nd", arbitrary_contribution
+        return "timeseries", arbitrary_contribution
+
+    if _is_iterable(arbitrary_contribution) and _is_number(arbitrary_contribution[0]):
+        return "timeseries", arbitrary_contribution
+
+    if not _is_number(arbitrary_contribution):
         raise ValueError("Objective function should return a value that is either"
-                         " a Number, a dictionary or Numbers, or an iterable of numbers")
+                         " a Number, a dictionary or Numbers, iterable of numbers, or a numpy array")
 
-    if not (multi_scores or is_timeseries or _is_number(arbitrary_contribution)):
-        raise ValueError("Objective function should return a value that is either"
-                         " a Number, a dictionary or Numbers, or an iterable of numbers")
-
-    return arbitrary_contribution, multi_scores, is_timeseries
+    return "scaler", arbitrary_contribution
 
 
 def _is_number(x) -> bool:
