@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from msapy import utils as ut
 from msapy.checks import _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
-from msapy.datastructures import ShapleyTable, ShapleyTableMultiScores, ShapleyTableND, ShapleyTableTimeSeries
+from msapy.datastructures import ShapleyModeND, ShapleyTable, ShapleyTableMultiScores, ShapleyTableTimeSeries
 
 
 @typechecked
@@ -279,9 +279,9 @@ def take_contributions(*,
 
 @typechecked
 def get_shapley_table(*,
-                        contributions: Dict,
-                        permutation_space: list,
-                        lesioned: Optional[any] = None) -> pd.DataFrame:
+                      contributions: Dict,
+                      permutation_space: list,
+                      lesioned: Optional[any] = None) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
     Briefly, for a permutation (A,B,C) it will be:
@@ -321,14 +321,10 @@ def get_shapley_table(*,
                          for k, v in contributions.items()}
 
     lesioned = set(lesioned) if lesioned else set()
-    shapley_table = {}
+    shapley_table = {} if contribution_type != 'nd' else 0
 
-    for permutation in permutation_space:
+    for i, permutation in enumerate(set(permutation_space)):
         isolated_contributions = []  # got to be a better way!
-
-        # if the set is small it's possible that the permutation space exhausts the combination space so:
-        if permutation in shapley_table:
-            continue
 
         # iterate over all elements in the permutation to calculate their isolated contributions
         for index, _ in enumerate(permutation):
@@ -336,23 +332,27 @@ def get_shapley_table(*,
             excluding = frozenset(permutation[:index]) - lesioned
 
             # the isolated contribution of an element is the difference of contribution with that element and without that element
-            isolated_contributions.append(contributions[including] - contributions[excluding])
-
-        shapley_table[permutation] = np.array(isolated_contributions)
+            isolated_contributions.append(
+                contributions[including] - contributions[excluding])
+        if contribution_type == 'nd':
+            isolated_contributions = [x for _, x in sorted(
+                zip(permutation, isolated_contributions))]
+            shapley_table += (np.array(isolated_contributions) -
+                              shapley_table) / (i + 1)
+        else:
+            shapley_table[permutation] = np.array(isolated_contributions)
 
     # post processing of shapley values based on what type of contribution it is. The format of output will vary based on if the
     # values are multi-scores, timeseries, etc.
     if contribution_type == 'nd':
-        for permutation in shapley_table:
-            shapley_table[permutation] = shapley_table[permutation].reshape(shapley_table[permutation].shape[0], -1)
-        shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
-                                       for permutations, shapleys in shapley_table.items()])
-        return ShapleyTableND.from_dataframe(shapley_table, arbitrary_contrib.shape)
+        shapley_table = shapley_table.reshape(shapley_table.shape[0], -1).T
+        shapley_table = pd.DataFrame(shapley_table, columns=sorted(permutation))
+        return ShapleyModeND(shapley_table, arbitrary_contrib.shape)
 
     if contribution_type != 'multi_scores':
         shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
-                                       for permutations, shapleys in shapley_table.items()])
-        return ShapleyTableTimeSeries.from_dataframe(shapley_table) if (contribution_type=="timeseries") else ShapleyTable(shapley_table)
+                                      for permutations, shapleys in shapley_table.items()])
+        return ShapleyTableTimeSeries.from_dataframe(shapley_table) if (contribution_type == "timeseries") else ShapleyTable(shapley_table)
 
     shapley_values = []
     for i in range(len(arbitrary_contrib)):

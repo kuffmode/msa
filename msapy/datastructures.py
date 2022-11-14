@@ -1,4 +1,4 @@
-from re import S
+from functools import cached_property
 from typing import Optional
 from msapy import utils as ut, plottings as pl
 import pandas as pd
@@ -49,10 +49,10 @@ class ShapleyTableMultiScores(pd.DataFrame):
         return list(self.index.levels[0])
 
 
-class ShapleyTableNDBaseClass(pd.DataFrame):
+class ShapleyTableTimeSeries(pd.DataFrame):
     @property
     def _constructor(self):
-        return ShapleyTableNDBaseClass
+        return ShapleyTableTimeSeries
 
     @classmethod
     def from_dataframe(cls, shapley_table):
@@ -63,25 +63,16 @@ class ShapleyTableNDBaseClass(pd.DataFrame):
         data = data.transpose((0, 2, 1)).reshape((-1, num_nodes))
 
         shapley_table = pd.DataFrame(data=data,
-                                     index=pd.MultiIndex.from_product([range(num_permutation), range(mode_size)], names=[None, "mode_size"]),
+                                     index=pd.MultiIndex.from_product(
+                                         [range(num_permutation), range(mode_size)], names=[None, "mode_size"]),
                                      columns=shapley_table.columns
                                      )
-        return cls(shapley_table)
-
-    @property
-    def shapley_modes(self):
-        return self.groupby(level=1).mean()
-
-class ShapleyTableTimeSeries(ShapleyTableNDBaseClass):
-    @property
-    def _constructor(self):
-        return ShapleyTableTimeSeries
-
-    @classmethod
-    def from_dataframe(cls, shapley_table):
-        shapley_table = super(ShapleyTableTimeSeries, cls).from_dataframe(shapley_table)
         shapley_table.index.names = [None, "timestamps"]
         return cls(shapley_table)
+
+    @cached_property
+    def shapley_modes(self):
+        return self.groupby(level=1).mean()
 
     def plot_total_contributions(self, dpi=100, xlabel="Time steps", ylabel="Contribution", title="Total Contributions", savepath=None):
         plt.figure(dpi=dpi)
@@ -93,25 +84,20 @@ class ShapleyTableTimeSeries(ShapleyTableNDBaseClass):
         if savepath:
             plt.savefig(savepath, dpi=dpi, bbox_inches='tight')
 
-class ShapleyTableND(ShapleyTableNDBaseClass):
+
+class ShapleyModeND(pd.DataFrame):
     _metadata = ["_shape"]
 
     def __init__(self, dataFrame: pd.DataFrame, shape: Optional[list] = None):
         super().__init__(dataFrame)
         self._shape = shape
 
-
     @property
     def _constructor(self):
-        return ShapleyTableND
-
-    @classmethod
-    def from_dataframe(cls, shapley_table, shape):
-        shapley_table = ShapleyTableNDBaseClass.from_dataframe(shapley_table)
-        shapley_table.index.names = [None, "pixel_id"]
-        var =  cls(shapley_table, shape)
-        return var
+        return ShapleyModeND
 
     def get_shapley_mode(self, element):
-        return self.shapley_modes[element].values.reshape(self._shape)
+        return self[element].values.reshape(self._shape)
 
+    def get_total_contributions(self):
+        return self.sum(1).values.reshape(self._shape)
