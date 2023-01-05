@@ -71,10 +71,24 @@ def _get_contribution_type(contributions: dict) -> Tuple[str, Union[dict, np.num
 
     if not _is_number(arbitrary_contribution):
         raise ValueError("Objective function should return a value that is either"
-                         " a Number, a dictionary or Numbers, iterable of numbers, or a numpy array")
+                         " a Number, a dictionary or Numbers, iterable of numbers, or a numpy array."
+                         f" Returned {type(arbitrary_contribution)} instead.")
 
     return "scaler", arbitrary_contribution
 
+
+def _check_get_shapley_table_args(contributions, objective_function, lazy):
+    if lazy == True:
+        if objective_function is None:
+            raise ValueError(
+                "Objective function should be passed in case of lazy calculation of shapely table")
+        if contributions is not None:
+            raise ValueError(
+                "A contributions dictionacontributions_excludingry is not required in case of lazy calculation of shapely table")
+    else:
+        if contributions is None:
+            raise ValueError(
+                "A contributions dictionary is neccessary for the calculation of shapley table if lazy is set to False")
 
 def _is_number(x) -> bool:
     return isinstance(x, (Number, np.number))

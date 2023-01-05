@@ -10,7 +10,7 @@ from typeguard import typechecked
 from tqdm import tqdm
 
 from msapy import utils as ut
-from msapy.checks import _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
+from msapy.checks import _check_get_shapley_table_args, _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
 from msapy.datastructures import ShapleyModeND, ShapleyTable, ShapleyTableMultiScores, ShapleyTableTimeSeries
 
 
@@ -66,6 +66,8 @@ def make_permutation_space(*,
     _check_valid_n_permutations(n_permutations)
     # ------------------------------#
 
+    type_of_elements = type(elements[0])
+
     # create a numpy random number generator if one is not passed
     if not rng:
         rng = np.random.default_rng(random_seed) if random_seed \
@@ -73,8 +75,10 @@ def make_permutation_space(*,
 
     # return n_permutations random permutations if pair argument is not passed
     if not pair:
-        permutation_space = [tuple(rng.permutation(elements))
+        permutation_space = [tuple(type_of_elements(element)
+                                   for element in rng.permutation(elements))
                              for _ in range(n_permutations)]
+
         return permutation_space
 
     # if the pair argument is passed, then all permutations will have those two elements together using the following logic
@@ -279,9 +283,12 @@ def take_contributions(*,
 
 @typechecked
 def get_shapley_table(*,
-                      contributions: Dict,
                       permutation_space: list,
-                      lesioned: Optional[any] = None) -> pd.DataFrame:
+                      contributions: Optional[Dict] = None,
+                      lesioned: Optional[any] = None,
+                      objective_function: Optional[Callable] = None,
+                      objective_function_params: Optional[Dict] = None,
+                      lazy=False) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
     Briefly, for a permutation (A,B,C) it will be:
@@ -311,8 +318,13 @@ def get_shapley_table(*,
         It will be a Multi-Index DataFrame if the contributions are a timeseries.
         The index at `level=1` will be the timestamps
     """
+    _check_get_shapley_table_args(contributions, objective_function, lazy)
     _check_valid_permutation_space(permutation_space)
-    contribution_type, arbitrary_contrib = _get_contribution_type(contributions)
+
+    contributions = {tuple(): objective_function(tuple(), **objective_function_params)} if lazy else contributions
+
+    contribution_type, arbitrary_contrib = _get_contribution_type(
+        contributions)
 
     # if it's a multi score problem, then we make all the contributions to numpy arrays for efficient calculations later
     if contribution_type == 'multi_scores':
@@ -332,8 +344,19 @@ def get_shapley_table(*,
             excluding = frozenset(permutation[:index]) - lesioned
 
             # the isolated contribution of an element is the difference of contribution with that element and without that element
-            isolated_contributions.append(
-                contributions[including] - contributions[excluding])
+            if lazy:
+                contributions_including = objective_function(tuple(excluding), **objective_function_params)
+                contributions_excluding = objective_function(tuple(including), **objective_function_params)
+
+                if contribution_type == 'multi_scores':
+                    contributions_including = np.array(list(contributions_including.values()))
+                    contributions_excluding = np.array(list(contributions_excluding.values()))
+
+                isolated_contributions.append(
+                    contributions_including - contributions_excluding)
+            else:
+                isolated_contributions.append(
+                    contributions[including] - contributions[excluding])
         if contribution_type == 'nd':
             isolated_contributions = [x for _, x in sorted(
                 zip(permutation, isolated_contributions))]
@@ -346,7 +369,8 @@ def get_shapley_table(*,
     # values are multi-scores, timeseries, etc.
     if contribution_type == 'nd':
         shapley_table = shapley_table.reshape(shapley_table.shape[0], -1).T
-        shapley_table = pd.DataFrame(shapley_table, columns=sorted(permutation))
+        shapley_table = pd.DataFrame(
+            shapley_table, columns=sorted(permutation))
         return ShapleyModeND(shapley_table, arbitrary_contrib.shape)
 
     if contribution_type != 'multi_scores':
@@ -377,6 +401,7 @@ def interface(*,
               rng: Optional[np.random.Generator] = None,
               random_seed: Optional[int] = None,
               n_parallel_games: int = -1,
+              lazy: bool = True,
               ) -> Tuple[pd.DataFrame, Dict, Dict]:
     """
     A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
@@ -463,7 +488,8 @@ def interface(*,
 
     # create a numpy random number generator if one is not passed
     if not rng:
-        rng = np.random.default_rng(random_seed) if random_seed else np.random.default_rng()
+        rng = np.random.default_rng(
+            random_seed) if random_seed else np.random.default_rng()
 
     # create a permutation_space if one is not passed
     if not permutation_space:
@@ -475,12 +501,21 @@ def interface(*,
         warnings.warn("A Permutation space is given so n_permutations will fall back to what's specified there.",
                       stacklevel=2)
 
+    if lazy:
+        shapley_table = get_shapley_table(permutation_space=permutation_space,
+                                          lesioned=lesioned,
+                                          lazy=True,
+                                          objective_function=objective_function,
+                                          objective_function_params=objective_function_params)[elements]
+        return shapley_table, {}, {}
+
+
     combination_space = make_combination_space(permutation_space=permutation_space,
-                                               pair=pair,
-                                               lesioned=lesioned)
+                                                pair=pair,
+                                                lesioned=lesioned)
     complement_space = make_complement_space(combination_space=combination_space,
-                                             elements=elements,
-                                             lesioned=lesioned)
+                                                elements=elements,
+                                                lesioned=lesioned)
 
     if n_parallel_games == 1:
         contributions, lesion_effects = take_contributions(elements=elements,
@@ -600,7 +635,8 @@ def interaction_2d(*,
                       "multiprocessing_method": multiprocessing_method,
                       "rng": rng,
                       "random_seed": random_seed,
-                      "n_parallel_games": n_parallel_games}
+                      "n_parallel_games": n_parallel_games,
+                      "lazy": False}
 
     # calculate the shapley values with element j lesioned
     shapley_i, _, _ = interface(**interface_args, lesioned=pair[1])
@@ -637,7 +673,7 @@ def network_interaction_2d(*,
     interactions between the elements.
 
     Args:
-        n_permutations (int): Number of permutations (samples) per element.
+        n_permutations (int): Number of permutations (samplescontributions_excluding) per element.
 
         elements (list): List of the players (elements). Can be strings (names), integers (indicies), and tuples.
 
@@ -666,7 +702,7 @@ def network_interaction_2d(*,
                     lesioned = graph.copy()
                     lesioned.remove_nodes_from(complements)
                     return nx.local_efficiency(lesioned)
-
+contributions_excluding
         objective_function_params (Dict, optional): Kwargs for the objective_function. Defaults to {}.
 
         multiprocessing_method (str, optional): 
@@ -681,7 +717,7 @@ def network_interaction_2d(*,
             takes some like each game takes longer than 0.5 seconds or so. For example, a function that sleeps for a
             second on a set of 10 elements with 1000 permutations each (1024 games) performs as follows:
 
-                - no parallel: 1020 sec
+                - no parallel: 1020 seccontributions_excluding
                 - joblib: 63 sec
                 - ray: 65 sec
 
@@ -868,7 +904,8 @@ def estimate_causal_influences(elements: list,
 
     elif multiprocessing_method == 'ray':
         if importlib.util.find_spec("ray") is None:
-            raise ImportError("The ray package is required to run this algorithm. Install and use at your own risk.")
+            raise ImportError(
+                "The ray package is required to run this algorithm. Install and use at your own risk.")
 
         import ray
         if n_cores <= 0:
@@ -899,8 +936,9 @@ def estimate_causal_influences(elements: list,
     _, contribution_type = results[0]
     shapley_values = [r[0] for r in results]
 
-    causal_influences = pd.DataFrame(shapley_values, columns=elements) if contribution_type=="scaler" else pd.concat(shapley_values, keys=elements)
-    return causal_influences.swaplevel().sort_index(level=0) if contribution_type=="multi_scores" else causal_influences
+    causal_influences = pd.DataFrame(
+        shapley_values, columns=elements) if contribution_type == "scaler" else pd.concat(shapley_values, keys=elements)
+    return causal_influences.swaplevel().sort_index(level=0) if contribution_type == "multi_scores" else causal_influences
 
 
 def causal_influence_single_element(elements, objective_function,
@@ -985,7 +1023,8 @@ def causal_influence_single_element(elements, objective_function,
                                                 objective_function_params=objective_function_params,
                                                 n_parallel_games=n_parallel_games,
                                                 multiprocessing_method=multiprocessing_method,
-                                                random_seed=permutation_seed)
+                                                random_seed=permutation_seed,
+                                                lazy=False)
 
     contribution_type, _ = _get_contribution_type(contributions)
 

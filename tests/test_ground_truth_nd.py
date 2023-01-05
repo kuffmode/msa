@@ -26,8 +26,8 @@ def mask_image(image, mask):
     return masked_image
 
 
-@pytest.mark.parametrize("n_parallel_games", [1, -1])
-def test_contributions(n_parallel_games):
+@pytest.mark.parametrize("n_parallel_games, lazy", [[1, True], [-1, True], [1, False], [-1, False]])
+def test_contributions(n_parallel_games, lazy):
     image = data.astronaut()
     contributions = [mask_image(image, create_mask(512, 4, i)) for i in range(16)]
 
@@ -42,7 +42,8 @@ def test_contributions(n_parallel_games):
         elements=list(range(16)),
         n_permutations=100,
         objective_function=objective_func,
-        n_parallel_games=1
+        n_parallel_games=n_parallel_games,
+        lazy=lazy
         )
 
     assert np.allclose(shapley_mode.get_total_contributions(), image)
