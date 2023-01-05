@@ -33,7 +33,7 @@ Then we define some elements and generate the permutation space:
 nodes = ['A', 'B', 'C', 'D']
 permutation_space = msa.make_permutation_space(n_permutations=1000, elements=nodes)
 ```
-This results in a list of tuples, our permutation space that has 1000 permutations in it, here are the top 5 ones:
+This results in a list of tuples, our permutation space that has 1000 permutations in it, here are the first 5 lines:
 ```python
 [('D', 'C', 'A', 'B'),
  ('A', 'D', 'C', 'B'),
