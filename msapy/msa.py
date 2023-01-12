@@ -335,11 +335,11 @@ def get_shapley_table(*,
     lesioned = set(lesioned) if lesioned else set()
     shapley_table = {} if contribution_type != 'nd' else 0
 
-    for i, permutation in enumerate(set(permutation_space)):
+    for i, permutation in tqdm(enumerate(set(permutation_space)), total=len(permutation_space)):
         isolated_contributions = []  # got to be a better way!
 
         # iterate over all elements in the permutation to calculate their isolated contributions
-        for index, _ in enumerate(permutation):
+        for index, _ in tqdm(enumerate(permutation), leave=bool(i == 2), total=len(permutation)):
             including = frozenset(permutation[:index + 1]) - lesioned
             excluding = frozenset(permutation[:index]) - lesioned
 
