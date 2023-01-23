@@ -88,7 +88,9 @@ that is the difference of what's in the combination space in that coalition and 
  ('D', 'A'),
  ('C', 'D', 'A')]
 ```
-As you can see, for example when combination is `{'D'}` the corresponding complement is `('C', 'B', 'A')`. Note the difference in types, combination space is an `OrderedSet` of `frozenset`s so the Shapley value calculations are quicker while complement space is an `OrderedSet` of `Tuples` So handling it in your objective function is easier. Speaking of, let's make the worst objective function that just produces random values regardless of what's what (see the example `on ground-truth models.ipynb` for a more elaborate version.)[(see the example `on ground-truth models.ipynb` for a more elaborate version.)](https://github.com/kuffmode/msa/blob/main/examples/on%20ground-truth%20models.ipynb)
+As you can see, for example when combination is `{'D'}` the corresponding complement is `('C', 'B', 'A')`. Note the difference in types, combination space is an `OrderedSet` of `frozenset`s so the Shapley value calculations are quicker while complement space is an `OrderedSet` of `Tuples` So handling it in your objective function is easier. Speaking of, let's make the worst objective function that just produces random values regardless of what's what (see the example `on ground-truth models.ipynb` for a more elaborate version).
+For that we use the function 'random.randit' which returns random integers. 
+[(see the example `on ground-truth models.ipynb` for a more elaborate version.)](https://github.com/kuffmode/msa/blob/main/examples/on%20ground-truth%20models.ipynb)
 ```python
 def rnd(complements):
 	return np.random.randint(1, 10)
