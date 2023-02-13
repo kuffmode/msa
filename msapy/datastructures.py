@@ -1,4 +1,5 @@
-from re import S
+from functools import cached_property
+from typing import Optional
 from msapy import utils as ut, plottings as pl
 import pandas as pd
 import numpy as np
@@ -57,17 +58,19 @@ class ShapleyTableTimeSeries(pd.DataFrame):
     def from_dataframe(cls, shapley_table):
         num_permutation, num_nodes = shapley_table.shape
         data = np.stack(shapley_table.values.flatten())
-        num_timestamps = data.shape[-1]
+        mode_size = data.shape[-1]
         data = data.reshape(num_permutation, num_nodes, -1)
         data = data.transpose((0, 2, 1)).reshape((-1, num_nodes))
 
         shapley_table = pd.DataFrame(data=data,
-                                     index=pd.MultiIndex.from_product([range(num_permutation), range(num_timestamps)], names=[None, "timestamp"]),
+                                     index=pd.MultiIndex.from_product(
+                                         [range(num_permutation), range(mode_size)], names=[None, "mode_size"]),
                                      columns=shapley_table.columns
                                      )
+        shapley_table.index.names = [None, "timestamps"]
         return cls(shapley_table)
 
-    @property
+    @cached_property
     def shapley_modes(self):
         return self.groupby(level=1).mean()
 
@@ -80,3 +83,21 @@ class ShapleyTableTimeSeries(pd.DataFrame):
 
         if savepath:
             plt.savefig(savepath, dpi=dpi, bbox_inches='tight')
+
+
+class ShapleyModeND(pd.DataFrame):
+    _metadata = ["_shape"]
+
+    def __init__(self, dataFrame: pd.DataFrame, shape: Optional[list] = None):
+        super().__init__(dataFrame)
+        self._shape = shape
+
+    @property
+    def _constructor(self):
+        return ShapleyModeND
+
+    def get_shapley_mode(self, element):
+        return self[element].values.reshape(self._shape)
+
+    def get_total_contributions(self):
+        return self.sum(1).values.reshape(self._shape)

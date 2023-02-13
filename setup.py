@@ -10,7 +10,7 @@ with open("requirements.txt", "r") as f:
 test_packages = ["pytest~=6.2.5"]
 
 setup(name="msapy",
-      version="1.1.0",
+      version="1.2.0",
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,
       long_description_content_type='text/markdown',
