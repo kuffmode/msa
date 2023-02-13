@@ -1,7 +1,6 @@
 from msapy import msa
 import pytest
 import numpy as np
-from skimage import data
 
 
 def create_mask(image_size, grid_size, box):
@@ -28,7 +27,7 @@ def mask_image(image, mask):
 
 @pytest.mark.parametrize("n_parallel_games, lazy", [[1, True], [-1, True], [1, False], [-1, False]])
 def test_contributions(n_parallel_games, lazy):
-    image = data.astronaut()
+    image = (np.random.random(size=(512, 512, 3)) * 255).astype(np.int16)
     contributions = [mask_image(image, create_mask(512, 4, i)) for i in range(16)]
 
     def objective_func(complements):
