@@ -1017,17 +1017,14 @@ def causal_influence_single_element(elements, objective_function,
     # Takes the target out of the to_be_lesioned list
     without_target = set(elements).difference({element})
 
-    shapley_table, contributions, _ = interface(n_permutations=n_permutations,
+    shapley_output, _, _ = interface(n_permutations=n_permutations,
                                                 elements=list(without_target),
                                                 objective_function=objective_function,
                                                 objective_function_params=objective_function_params,
                                                 n_parallel_games=n_parallel_games,
                                                 multiprocessing_method=multiprocessing_method,
-                                                random_seed=permutation_seed,
-                                                lazy=False)
+                                                random_seed=permutation_seed)
 
-    contribution_type, _ = _get_contribution_type(contributions)
-
-    if contribution_type in ("scaler", "multi_scores"):
-        return shapley_table.shapley_values, contribution_type
-    return shapley_table.shapley_modes, contribution_type
+    if shapley_output.contribution_type in ("scaler", "multi_scores"):
+        return shapley_output.shapley_values, shapley_output.contribution_type
+    return shapley_output.shapley_modes, shapley_output.contribution_type

@@ -12,6 +12,10 @@ class ShapleyTable(pd.DataFrame):
         return ShapleyTable
 
     @property
+    def contribution_type(self):
+        return "scaler"
+
+    @property
     def shapley_values(self):
         return self.mean()
 
@@ -36,6 +40,10 @@ class ShapleyTableMultiScores(pd.DataFrame):
     @property
     def _constructor(self):
         return ShapleyTableMultiScores
+    
+    @property
+    def contribution_type(self):
+        return "multi_scores"
 
     @property
     def shapley_values(self):
@@ -53,6 +61,10 @@ class ShapleyTableTimeSeries(pd.DataFrame):
     @property
     def _constructor(self):
         return ShapleyTableTimeSeries
+
+    @property
+    def contribution_type(self):
+        return "timeseries"
 
     @classmethod
     def from_dataframe(cls, shapley_table):
@@ -91,6 +103,10 @@ class ShapleyModeND(pd.DataFrame):
     def __init__(self, dataFrame: pd.DataFrame, shape: Optional[list] = None):
         super().__init__(dataFrame)
         self._shape = shape
+    
+    @property
+    def contribution_type(self):
+        return "nd"
 
     @property
     def _constructor(self):
