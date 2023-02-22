@@ -799,7 +799,8 @@ def estimate_causal_influences(elements: list,
                                n_cores: int = -1,
                                n_permutations: int = 1000,
                                permutation_seed: Optional[int] = None,
-                               parallelize_over_games=False
+                               parallelize_over_games=False,
+                               lazy=True
                                ) -> pd.DataFrame:
     """
     Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function
@@ -900,7 +901,7 @@ def estimate_causal_influences(elements: list,
         results = [causal_influence_single_element(elements, objective_function,
                                                    objective_function_params, n_permutations,
                                                    n_cores, multiprocessing_method,
-                                                   permutation_seed, index, element) for index, element in tqdm(enumerate(target_elements))]
+                                                   permutation_seed, index, element, lazy) for index, element in tqdm(enumerate(target_elements))]
 
     elif multiprocessing_method == 'ray':
         if importlib.util.find_spec("ray") is None:
@@ -919,7 +920,7 @@ def estimate_causal_influences(elements: list,
         result_ids = [ray.remote(causal_influence_single_element).remote(elements, objective_function,
                                                                          objective_function_params, n_permutations,
                                                                          1, 'joblib',
-                                                                         permutation_seed, index, element) for index, element in enumerate(target_elements)]
+                                                                         permutation_seed, index, element, lazy) for index, element in enumerate(target_elements)]
 
         for _ in tqdm(ut.ray_iterator(result_ids), total=len(result_ids)):
             pass
@@ -931,7 +932,7 @@ def estimate_causal_influences(elements: list,
         results = (Parallel(n_jobs=n_cores)(delayed(causal_influence_single_element)(elements, objective_function,
                                                                                      objective_function_params, n_permutations,
                                                                                      1, 'joblib',
-                                                                                     permutation_seed, index, element) for index, element in tqdm(enumerate(target_elements))))
+                                                                                     permutation_seed, index, element, lazy) for index, element in tqdm(enumerate(target_elements))))
 
     _, contribution_type = results[0]
     shapley_values = [r[0] for r in results]
@@ -944,7 +945,7 @@ def estimate_causal_influences(elements: list,
 def causal_influence_single_element(elements, objective_function,
                                     objective_function_params, n_permutations,
                                     n_parallel_games, multiprocessing_method,
-                                    permutation_seed, index, element):
+                                    permutation_seed, index, element, lazy=True):
     """
     Estimates the causal contribution (Shapley values) of a node on the rest of the network. Basically, this function
     performs MSA and tracks the changes in the objective_function of the target node.
@@ -1023,7 +1024,8 @@ def causal_influence_single_element(elements, objective_function,
                                                 objective_function_params=objective_function_params,
                                                 n_parallel_games=n_parallel_games,
                                                 multiprocessing_method=multiprocessing_method,
-                                                random_seed=permutation_seed)
+                                                random_seed=permutation_seed,
+                                                lazy=lazy)
 
     if shapley_output.contribution_type in ("scaler", "multi_scores"):
         return shapley_output.shapley_values, shapley_output.contribution_type
