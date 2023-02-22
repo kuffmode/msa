@@ -8,6 +8,7 @@ from ordered_set import OrderedSet
 from itertools import combinations
 from typeguard import typechecked
 from tqdm import tqdm
+from fastprogress.fastprogress import master_bar, progress_bar, MasterBar
 
 from msapy import utils as ut
 from msapy.checks import _check_get_shapley_table_args, _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
@@ -196,7 +197,8 @@ def take_contributions(*,
                        complement_space: OrderedSet,
                        combination_space: OrderedSet,
                        objective_function: Callable,
-                       objective_function_params: Optional[Dict] = None) -> Tuple[Dict, Dict]:
+                       objective_function_params: Optional[Dict] = None,
+                       mbar: Optional[MasterBar] = None) -> Tuple[Dict, Dict]:
     """
     This function fills up the combination_space with the game you define (objective function). There is an important
     point to keep in mind, Shapley values are the added contributions of elements while in MSA we calculate them by
@@ -273,7 +275,7 @@ def take_contributions(*,
     # ------------------------------#
 
     # run the objective function over all complement space
-    for combination, complement in tqdm(zip(combination_space, complement_space)):
+    for combination, complement in progress_bar(zip(combination_space, complement_space), parent=mbar, total=len(combination_space), leave=False):
         result = objective_function(complement, **objective_function_params)
 
         contributions[combination] = result
@@ -288,7 +290,8 @@ def get_shapley_table(*,
                       lesioned: Optional[any] = None,
                       objective_function: Optional[Callable] = None,
                       objective_function_params: Optional[Dict] = None,
-                      lazy=False) -> pd.DataFrame:
+                      lazy=False,
+                      mbar: Optional[MasterBar] = None) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
     Briefly, for a permutation (A,B,C) it will be:
@@ -335,11 +338,16 @@ def get_shapley_table(*,
     lesioned = set(lesioned) if lesioned else set()
     shapley_table = {} if contribution_type != 'nd' else 0
 
-    for i, permutation in tqdm(enumerate(set(permutation_space)), total=len(permutation_space)):
-        isolated_contributions = []  # got to be a better way!
+    if mbar:
+        parent_bar = progress_bar(enumerate(set(permutation_space)), total=len(permutation_space))
+    else:
+        parent_bar = master_bar(enumerate(set(permutation_space)), total=len(permutation_space))
 
+    for i, permutation in parent_bar:
+        isolated_contributions = []  # got to be a better way!
+        child_bar = enumerate(permutation) if mbar else progress_bar(enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
         # iterate over all elements in the permutation to calculate their isolated contributions
-        for index, _ in tqdm(enumerate(permutation), leave=bool(i == 2), total=len(permutation)):
+        for index, _ in child_bar:
             including = frozenset(permutation[:index + 1]) - lesioned
             excluding = frozenset(permutation[:index]) - lesioned
 
@@ -402,6 +410,7 @@ def interface(*,
               random_seed: Optional[int] = None,
               n_parallel_games: int = -1,
               lazy: bool = True,
+              mbar: Optional[MasterBar] = None
               ) -> Tuple[pd.DataFrame, Dict, Dict]:
     """
     A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
@@ -506,7 +515,8 @@ def interface(*,
                                           lesioned=lesioned,
                                           lazy=True,
                                           objective_function=objective_function,
-                                          objective_function_params=objective_function_params)[elements]
+                                          objective_function_params=objective_function_params,
+                                          mbar=mbar)[elements]
         return shapley_table, {}, {}
 
 
@@ -522,7 +532,8 @@ def interface(*,
                                                            complement_space=complement_space,
                                                            combination_space=combination_space,
                                                            objective_function=objective_function,
-                                                           objective_function_params=objective_function_params)
+                                                           objective_function_params=objective_function_params,
+                                                           mbar=mbar)
     else:
         contributions, lesion_effects = ut.parallelized_take_contributions(
             multiprocessing_method=multiprocessing_method,
@@ -534,7 +545,7 @@ def interface(*,
 
     shapley_table = get_shapley_table(contributions=contributions,
                                       permutation_space=permutation_space,
-                                      lesioned=lesioned)[elements]
+                                      lesioned=lesioned, mbar=mbar)[elements]
     return shapley_table, contributions, lesion_effects
 
 
@@ -896,12 +907,12 @@ def estimate_causal_influences(elements: list,
     objective_function_params = objective_function_params if objective_function_params else {}
 
     # run causal_influence_single_element for all target elements.
-
+    mbar = master_bar(enumerate(target_elements), total=len(target_elements))
     if parallelize_over_games:
         results = [causal_influence_single_element(elements, objective_function,
                                                    objective_function_params, n_permutations,
                                                    n_cores, multiprocessing_method,
-                                                   permutation_seed, index, element, lazy) for index, element in tqdm(enumerate(target_elements))]
+                                                   permutation_seed, index, element, lazy, mbar) for index, element in mbar]
 
     elif multiprocessing_method == 'ray':
         if importlib.util.find_spec("ray") is None:
@@ -920,7 +931,7 @@ def estimate_causal_influences(elements: list,
         result_ids = [ray.remote(causal_influence_single_element).remote(elements, objective_function,
                                                                          objective_function_params, n_permutations,
                                                                          1, 'joblib',
-                                                                         permutation_seed, index, element, lazy) for index, element in enumerate(target_elements)]
+                                                                         permutation_seed, index, element, lazy, None) for index, element in enumerate(target_elements)]
 
         for _ in tqdm(ut.ray_iterator(result_ids), total=len(result_ids)):
             pass
@@ -932,7 +943,7 @@ def estimate_causal_influences(elements: list,
         results = (Parallel(n_jobs=n_cores)(delayed(causal_influence_single_element)(elements, objective_function,
                                                                                      objective_function_params, n_permutations,
                                                                                      1, 'joblib',
-                                                                                     permutation_seed, index, element, lazy) for index, element in tqdm(enumerate(target_elements))))
+                                                                                     permutation_seed, index, element, lazy, mbar) for index, element in mbar))
 
     _, contribution_type = results[0]
     shapley_values = [r[0] for r in results]
@@ -945,7 +956,7 @@ def estimate_causal_influences(elements: list,
 def causal_influence_single_element(elements, objective_function,
                                     objective_function_params, n_permutations,
                                     n_parallel_games, multiprocessing_method,
-                                    permutation_seed, index, element, lazy=True):
+                                    permutation_seed, index, element, lazy=True, mbar=None):
     """
     Estimates the causal contribution (Shapley values) of a node on the rest of the network. Basically, this function
     performs MSA and tracks the changes in the objective_function of the target node.
@@ -1025,7 +1036,8 @@ def causal_influence_single_element(elements, objective_function,
                                                 n_parallel_games=n_parallel_games,
                                                 multiprocessing_method=multiprocessing_method,
                                                 random_seed=permutation_seed,
-                                                lazy=lazy)
+                                                lazy=lazy,
+                                                mbar=mbar)
 
     if shapley_output.contribution_type in ("scaler", "multi_scores"):
         return shapley_output.shapley_values, shapley_output.contribution_type
