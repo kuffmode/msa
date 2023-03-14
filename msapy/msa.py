@@ -9,6 +9,7 @@ from itertools import combinations
 from typeguard import typechecked
 from tqdm import tqdm
 from fastprogress.fastprogress import master_bar, progress_bar, MasterBar
+from tqdm_joblib import tqdm_joblib
 
 from msapy import utils as ut
 from msapy.checks import _check_get_shapley_table_args, _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
@@ -291,7 +292,8 @@ def get_shapley_table(*,
                       objective_function: Optional[Callable] = None,
                       objective_function_params: Optional[Dict] = None,
                       lazy=False,
-                      mbar: Optional[MasterBar] = None) -> pd.DataFrame:
+                      dual_progress_bars: bool=True,
+                      mbar: Optional[MasterBar] = None,) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
     Briefly, for a permutation (A,B,C) it will be:
@@ -338,14 +340,17 @@ def get_shapley_table(*,
     lesioned = set(lesioned) if lesioned else set()
     shapley_table = {} if contribution_type != 'nd' else 0
 
-    if mbar:
-        parent_bar = progress_bar(enumerate(set(permutation_space)), total=len(permutation_space))
-    else:
+    if not lazy:
+        parent_bar = enumerate(set(permutation_space))
+    elif (not dual_progress_bars) or mbar:
+        parent_bar = progress_bar(enumerate(set(permutation_space)), total=len(permutation_space), leave=False, parent=mbar)
+    elif lazy:
         parent_bar = master_bar(enumerate(set(permutation_space)), total=len(permutation_space))
+        
 
     for i, permutation in parent_bar:
         isolated_contributions = []  # got to be a better way!
-        child_bar = enumerate(permutation) if mbar else progress_bar(enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
+        child_bar = enumerate(permutation) if not (dual_progress_bars and lazy) else progress_bar(enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
         # iterate over all elements in the permutation to calculate their isolated contributions
         for index, _ in child_bar:
             including = frozenset(permutation[:index + 1]) - lesioned
@@ -410,6 +415,7 @@ def interface(*,
               random_seed: Optional[int] = None,
               n_parallel_games: int = -1,
               lazy: bool = True,
+              dual_progress_bars: bool=True,
               mbar: Optional[MasterBar] = None
               ) -> Tuple[pd.DataFrame, Dict, Dict]:
     """
@@ -479,7 +485,7 @@ def interface(*,
         rng (Optional[np.random.Generator]): Numpy random generator object used for reproducable results. Default is None.
 
         random_seed (Optional[int]):
-            sets the random seed of the sampling process. Only used when `rng` is None. Default is None.
+            sets the random seed of tdual_progress_bars=dual_progress_bars,he sampling process. Only used when `rng` is None. Default is None.
 
         n_parallel_games (int):
             Number of parallel jobs (number of to-be-occupied cores),
@@ -516,6 +522,7 @@ def interface(*,
                                           lazy=True,
                                           objective_function=objective_function,
                                           objective_function_params=objective_function_params,
+                                          dual_progress_bars=dual_progress_bars,
                                           mbar=mbar)[elements]
         return shapley_table, {}, {}
 
@@ -541,10 +548,12 @@ def interface(*,
             complement_space=complement_space,
             combination_space=combination_space,
             objective_function=objective_function,
-            objective_function_params=objective_function_params)
+            objective_function_params=objective_function_params,
+            mbar=mbar)
 
     shapley_table = get_shapley_table(contributions=contributions,
                                       permutation_space=permutation_space,
+                                      dual_progress_bars=dual_progress_bars,
                                       lesioned=lesioned, mbar=mbar)[elements]
     return shapley_table, contributions, lesion_effects
 
@@ -906,9 +915,9 @@ def estimate_causal_influences(elements: list,
     target_elements = target_elements if target_elements else elements
     objective_function_params = objective_function_params if objective_function_params else {}
 
-    # run causal_influence_single_element for all target elements.
-    mbar = master_bar(enumerate(target_elements), total=len(target_elements))
     if parallelize_over_games:
+        # run causal_influence_single_element for all target elements.
+        mbar = master_bar(enumerate(target_elements), total=len(target_elements))
         results = [causal_influence_single_element(elements, objective_function,
                                                    objective_function_params, n_permutations,
                                                    n_cores, multiprocessing_method,
@@ -940,10 +949,11 @@ def estimate_causal_influences(elements: list,
         ray.shutdown()
 
     else:
-        results = (Parallel(n_jobs=n_cores)(delayed(causal_influence_single_element)(elements, objective_function,
+        with tqdm_joblib(desc="Doing Nodes: ", total=len(target_elements)) as pb:
+            results = (Parallel(n_jobs=n_cores)(delayed(causal_influence_single_element)(elements, objective_function,
                                                                                      objective_function_params, n_permutations,
                                                                                      1, 'joblib',
-                                                                                     permutation_seed, index, element, lazy, mbar) for index, element in mbar))
+                                                                                     permutation_seed, index, element, lazy) for index, element in enumerate(target_elements)))
 
     _, contribution_type = results[0]
     shapley_values = [r[0] for r in results]
@@ -1023,7 +1033,6 @@ def causal_influence_single_element(elements, objective_function,
 
     """
 
-    print(f"working on node number {index} from {len(elements)} nodes.")
     objective_function_params['index'] = index
 
     # Takes the target out of the to_be_lesioned list
@@ -1031,6 +1040,7 @@ def causal_influence_single_element(elements, objective_function,
 
     shapley_output, _, _ = interface(n_permutations=n_permutations,
                                                 elements=list(without_target),
+                                                dual_progress_bars= False,
                                                 objective_function=objective_function,
                                                 objective_function_params=objective_function_params,
                                                 n_parallel_games=n_parallel_games,

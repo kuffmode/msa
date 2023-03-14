@@ -9,3 +9,4 @@ ordered-set ~= 4.0.2
 matplotlib ~= 3.4.3
 seaborn ~= 0.11.2
 fastprogress
+tqdm_joblib
