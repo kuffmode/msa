@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+#TODO: Update Code To Use Custom Accessors Instead: https://pandas.pydata.org/docs/development/extending.html#registering-custom-accessors
 
 class ShapleyTable(pd.DataFrame):
     @property
@@ -116,4 +117,4 @@ class ShapleyModeND(pd.DataFrame):
         return self[element].values.reshape(self._shape)
 
     def get_total_contributions(self):
-        return self.sum(1).values.reshape(self._shape)
+        return self.values.sum(1).reshape(self._shape)
