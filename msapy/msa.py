@@ -938,7 +938,7 @@ def estimate_causal_influences(elements: list,
 
     causal_influences = pd.DataFrame(
         shapley_values, columns=elements) if contribution_type == "scaler" else pd.concat(shapley_values, keys=elements)
-    return causal_influences.swaplevel().sort_index(level=0) if contribution_type == "multi_scores" else causal_influences
+    return causal_influences.swaplevel().sort_index(level=0) if contribution_type == "multi_scores" else causal_influences[causal_influences.index.levels[0]]
 
 
 def causal_influence_single_element(elements, objective_function,
