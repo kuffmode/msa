@@ -2,6 +2,7 @@ import gc
 import importlib
 import warnings
 from typing import Any, Generator, Iterable, Callable, Optional, Dict, Tuple
+from fastprogress import progress_bar
 
 import numpy as np
 import pandas as pd
@@ -29,7 +30,8 @@ def parallelized_take_contributions(*,
                                     complement_space: OrderedSet,
                                     combination_space: OrderedSet,
                                     objective_function: Callable,
-                                    objective_function_params: Optional[Dict] = None) -> Tuple[Dict, Dict]:
+                                    objective_function_params: Optional[Dict] = None,
+                                    mbar=None) -> Tuple[Dict, Dict]:
     """
     Same as the take_contribution function but parallelized over CPU cores to boost performance.
     I'd first try the single msapy version on a toy example to make sure everything makes sense then
@@ -109,6 +111,7 @@ def parallelized_take_contributions(*,
             - lesion_effects: A dictionary of lesions:results
     """
     objective_function_params = objective_function_params if objective_function_params else {}
+    cbar = progress_bar(complement_space, total=len(complement_space), parent=mbar, leave=False)
 
     if len(complement_space.items[0]) == 1:
         warnings.warn("Are you sure you're not mistaking complement and combination spaces?"
@@ -139,7 +142,7 @@ def parallelized_take_contributions(*,
 
     elif multiprocessing_method == 'joblib':
         results = (Parallel(n_jobs=n_cores)(delayed(objective_function)(
-            complement, **objective_function_params) for complement in tqdm(complement_space, total=len(complement_space), desc='Playing the games: ')))
+            complement, **objective_function_params) for complement in cbar))
     else:
         raise NotImplemented("Available multiprocessing backends are 'ray' and 'joblib'")
 
