@@ -25,8 +25,7 @@ def mask_image(image, mask):
     return masked_image
 
 
-@pytest.mark.parametrize("n_parallel_games, lazy", [[1, True], [-1, True], [1, False], [-1, False]])
-def test_contributions(n_parallel_games, lazy):
+def test_contributions():
     image = (np.random.random(size=(512, 512, 3)) * 255).astype(np.int16)
     contributions = [mask_image(image, create_mask(512, 4, i)) for i in range(16)]
 
@@ -37,12 +36,10 @@ def test_contributions(n_parallel_games, lazy):
 
         return contrib.astype(np.int16)
 
-    shapley_mode, _, _ = msa.interface(
+    shapley_mode = msa.interface(
         elements=list(range(16)),
         n_permutations=100,
-        objective_function=objective_func,
-        n_parallel_games=n_parallel_games,
-        lazy=lazy
+        objective_function=objective_func
         )
 
     assert np.allclose(shapley_mode.get_total_contributions(), image)

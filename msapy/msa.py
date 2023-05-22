@@ -1,19 +1,17 @@
-import importlib
 import warnings
-from typing import Callable, Optional, Dict, Tuple
-from joblib import Parallel, delayed
+from typing import Callable, Optional, Dict, Tuple, Union
 import numpy as np
 import pandas as pd
 from ordered_set import OrderedSet
 from itertools import combinations
 from typeguard import typechecked
-from tqdm import tqdm
-from fastprogress.fastprogress import master_bar, progress_bar, MasterBar
-from tqdm_joblib import tqdm_joblib
 
-from msapy import utils as ut
-from msapy.checks import _check_get_shapley_table_args, _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
-from msapy.datastructures import ShapleyModeND, ShapleyTable, ShapleyTableMultiScores, ShapleyTableTimeSeries
+import dask
+from dask.delayed import Delayed
+from dask.diagnostics import ProgressBar
+
+from msapy.checks import _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
+from msapy.datastructures import ShapleyModeND, ShapleyTable
 
 
 @typechecked
@@ -193,107 +191,11 @@ def make_complement_space(*,
 
 
 @typechecked
-def take_contributions(*,
-                       elements: list,
-                       complement_space: OrderedSet,
-                       combination_space: OrderedSet,
-                       objective_function: Callable,
-                       objective_function_params: Optional[Dict] = None,
-                       mbar: Optional[MasterBar] = None) -> Tuple[Dict, Dict]:
-    """
-    This function fills up the combination_space with the game you define (objective function). There is an important
-    point to keep in mind, Shapley values are the added contributions of elements while in MSA we calculate them by
-    perturbation so although it's intuitive to think the combination in combination space is the element that will be
-    lesioned, it is not the case, it will be everything else but the coalition, i.e., the target coalition are the
-    only intact elements. This function takes care of this by passing the complement of each coalition to the
-    game while assigning the results to the target coalition, just keep the logic in mind.
-
-    A second point is that this function returns a filled combination_space, it is not filling it in-place for the
-    sake of purity.
-
-    ---------------
-    Note on returns:
-        Contributions and lesion effects are virtually the same thing it's just about how you're looking at them.
-        For example, you might want to use lesion effects by conditioning elements' length and see the effect of
-        single lesions, dual, triple,... so, for contributions we have a value contributed by the intact coalition,
-        the same result can be compared to the intact system to see how big was the impact of lesioning the complements.
-        "Same same, but different, but still same!" - James Franco
-
-    Args:
-        elements (list):
-            List of the players. Obviously, should be the same passed to make_permutation.
-
-        complement_space (OrderedSet):
-            The actual targets for lesioning. Shapley values are the added contributions of elements
-            while in MSA we calculate them by perturbation so although it's intuitive to think the combination
-            in combination space is the element that will be lesioned, it is not the case,
-            it will be everything else but the coalition, i.e., the target coalition are the only intact elements.
-
-        combination_space (OrderedSet):
-            The template, will be copied, filled by the objective_function, and returned.
-
-        objective_function (Callable):
-            The game, it should get the complement set and return one numeric value either int or float.
-            This function is just calling it as: objective_function(complement, **objective_function_params)
-            so design accordingly.
-
-            An example using networkx with some tips:
-            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
-
-            def local_efficiency(complements, graph):
-                if len(complements) < 0:
-                    # the network is intact so:
-                    return nx.local_efficiency(graph)
-
-                elif len(complements) == len(graph):
-                    # the network is fully lesioned so:
-                    return 0.0
-
-                else:
-                    # lesion the system, calculate things
-                    lesioned = graph.copy()
-                    lesioned.remove_nodes_from(complements)
-                    return nx.local_efficiency(lesioned)
-
-        objective_function_params (Optional[Dict]):
-            Kwargs for the objective_function.
-
-    Returns:
-        (Dict): A dictionary of combinations:results
-    """
-
-    elements = frozenset(elements)
-    contributions = dict.fromkeys(combination_space)
-    lesion_effects = dict.fromkeys(complement_space)
-    objective_function_params = objective_function_params if objective_function_params else {}
-
-    # ------------------------------#
-    if len(complement_space.items[1]) == 0:
-        warnings.warn("Are you sure you're not mistaking complement and combination spaces?"
-                      "Length of the first element in complement space (really, complement_space[1]) is 0. "
-                      "It should be equal to the number of elements.",
-                      stacklevel=2)
-    # ------------------------------#
-
-    # run the objective function over all complement space
-    for combination, complement in progress_bar(zip(combination_space, complement_space), parent=mbar, total=len(combination_space), leave=False):
-        result = objective_function(complement, **objective_function_params)
-
-        contributions[combination] = result
-        lesion_effects[complement] = result
-    return contributions, lesion_effects
-
-
-@typechecked
 def get_shapley_table(*,
                       permutation_space: list,
-                      contributions: Optional[Dict] = None,
+                      objective_function: Optional[Callable],
                       lesioned: Optional[any] = None,
-                      objective_function: Optional[Callable] = None,
-                      objective_function_params: Optional[Dict] = None,
-                      lazy=False,
-                      dual_progress_bars: bool=True,
-                      mbar: Optional[MasterBar] = None,) -> pd.DataFrame:
+                      objective_function_params: Optional[Dict] = None) -> Delayed:
     """
     Calculates Shapley values based on the filled contribution_space.
     Briefly, for a permutation (A,B,C) it will be:
@@ -323,58 +225,29 @@ def get_shapley_table(*,
         It will be a Multi-Index DataFrame if the contributions are a timeseries.
         The index at `level=1` will be the timestamps
     """
-    _check_get_shapley_table_args(contributions, objective_function, lazy)
     _check_valid_permutation_space(permutation_space)
 
-    contributions = {tuple(): objective_function(tuple(), **objective_function_params)} if lazy else contributions
-
-    contribution_type, arbitrary_contrib = _get_contribution_type(
-        contributions)
-
-    # if it's a multi score problem, then we make all the contributions to numpy arrays for efficient calculations later
-    if contribution_type == 'multi_scores':
-        scores = list(arbitrary_contrib.keys())
-        contributions = {k: np.array(list(v.values()))
-                         for k, v in contributions.items()}
+    contribution_type, arbitrary_contrib = _get_contribution_type(objective_function(tuple(), **objective_function_params))
 
     lesioned = set(lesioned) if lesioned else set()
     shapley_table = {} if contribution_type != 'nd' else 0
-
-    if not lazy:
-        parent_bar = enumerate(set(permutation_space))
-    elif (not dual_progress_bars) or mbar:
-        parent_bar = progress_bar(enumerate(set(permutation_space)), total=len(permutation_space), leave=False, parent=mbar)
-    elif lazy:
-        parent_bar = master_bar(enumerate(set(permutation_space)), total=len(permutation_space))
         
-
-    for i, permutation in parent_bar:
+    for i, permutation in enumerate(set(permutation_space)):
         isolated_contributions = []  # got to be a better way!
-        child_bar = enumerate(permutation) if not (dual_progress_bars and lazy) else progress_bar(enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
         # iterate over all elements in the permutation to calculate their isolated contributions
-        for index, _ in child_bar:
+        for index, _ in enumerate(permutation):
             including = frozenset(permutation[:index + 1]) - lesioned
             excluding = frozenset(permutation[:index]) - lesioned
 
             # the isolated contribution of an element is the difference of contribution with that element and without that element
-            if lazy:
-                contributions_including = objective_function(tuple(excluding), **objective_function_params)
-                contributions_excluding = objective_function(tuple(including), **objective_function_params)
+            contributions_including = dask.delayed(objective_function)(tuple(excluding), **objective_function_params)
+            contributions_excluding = dask.delayed(objective_function)(tuple(including), **objective_function_params)
 
-                if contribution_type == 'multi_scores':
-                    contributions_including = np.array(list(contributions_including.values()))
-                    contributions_excluding = np.array(list(contributions_excluding.values()))
-
-                isolated_contributions.append(
-                    contributions_including - contributions_excluding)
-            else:
-                isolated_contributions.append(
-                    contributions[including] - contributions[excluding])
+            isolated_contributions.append(contributions_including - contributions_excluding)
+            
         if contribution_type == 'nd':
-            isolated_contributions = [x for _, x in sorted(
-                zip(permutation, isolated_contributions))]
-            shapley_table += (np.array(isolated_contributions) -
-                              shapley_table) / (i + 1)
+            isolated_contributions = [x for _, x in sorted(zip(permutation, isolated_contributions))]
+            shapley_table = shapley_mean(shapley_table, i, isolated_contributions)
         else:
             shapley_table[permutation] = np.array(isolated_contributions)
 
@@ -382,23 +255,23 @@ def get_shapley_table(*,
     # values are multi-scores, timeseries, etc.
     if contribution_type == 'nd':
         shapley_table = shapley_table.reshape(shapley_table.shape[0], -1).T
-        shapley_table = pd.DataFrame(
-            shapley_table, columns=sorted(permutation))
-        return ShapleyModeND(shapley_table, arbitrary_contrib.shape)
+        shapley_table = dask.delayed(pd.DataFrame)(shapley_table, columns=sorted(permutation))
+        return dask.delayed(ShapleyModeND)(shapley_table, arbitrary_contrib.shape)
 
-    if contribution_type != 'multi_scores':
-        shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
-                                      for permutations, shapleys in shapley_table.items()])
-        return ShapleyTableTimeSeries.from_dataframe(shapley_table) if (contribution_type == "timeseries") else ShapleyTable(shapley_table)
+    shapley_table = dask.delayed(pd.DataFrame)([dict(zip(permutations, shapleys))
+                                    for permutations, shapleys in shapley_table.items()])
+    return dask.delayed(ShapleyTable)(shapley_table)
 
-    shapley_values = []
-    for i in range(len(arbitrary_contrib)):
-        shapley_values.append(pd.DataFrame([dict(zip(permutations, shapleys[:, i]))
-                                            for permutations, shapleys in shapley_table.items()]))
 
-    shapley_table = pd.concat(shapley_values, keys=scores)
+@dask.delayed
+def shapley_mean(shapley_table, i, isolated_contributions):
+    return shapley_table + (np.array(isolated_contributions) -
+                              shapley_table) / (i + 1)
 
-    return ShapleyTableMultiScores(shapley_table)
+@dask.delayed
+def temp_name(shapley_table, i):
+    return [dict(zip(permutations, shapleys[:, i]))
+                                            for permutations, shapleys in shapley_table.items()]
 
 
 @typechecked
@@ -410,14 +283,10 @@ def interface(*,
               permutation_space: Optional[list] = None,
               pair: Optional[Tuple] = None,
               lesioned: Optional[any] = None,
-              multiprocessing_method: str = 'joblib',
               rng: Optional[np.random.Generator] = None,
               random_seed: Optional[int] = None,
-              n_parallel_games: int = -1,
-              lazy: bool = True,
-              dual_progress_bars: bool=True,
-              mbar: Optional[MasterBar] = None
-              ) -> Tuple[pd.DataFrame, Dict, Dict]:
+              return_delayed: bool = False,
+              ) -> Union[Delayed, pd.DataFrame]:
     """
     A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
 
@@ -516,46 +385,15 @@ def interface(*,
         warnings.warn("A Permutation space is given so n_permutations will fall back to what's specified there.",
                       stacklevel=2)
 
-    if lazy:
-        shapley_table = get_shapley_table(permutation_space=permutation_space,
-                                          lesioned=lesioned,
-                                          lazy=True,
-                                          objective_function=objective_function,
-                                          objective_function_params=objective_function_params,
-                                          dual_progress_bars=dual_progress_bars,
-                                          mbar=mbar)[elements]
-        return shapley_table, {}, {}
-
-
-    combination_space = make_combination_space(permutation_space=permutation_space,
-                                                pair=pair,
-                                                lesioned=lesioned)
-    complement_space = make_complement_space(combination_space=combination_space,
-                                                elements=elements,
-                                                lesioned=lesioned)
-
-    if n_parallel_games == 1:
-        contributions, lesion_effects = take_contributions(elements=elements,
-                                                           complement_space=complement_space,
-                                                           combination_space=combination_space,
-                                                           objective_function=objective_function,
-                                                           objective_function_params=objective_function_params,
-                                                           mbar=mbar)
-    else:
-        contributions, lesion_effects = ut.parallelized_take_contributions(
-            multiprocessing_method=multiprocessing_method,
-            n_cores=n_parallel_games,
-            complement_space=complement_space,
-            combination_space=combination_space,
-            objective_function=objective_function,
-            objective_function_params=objective_function_params,
-            mbar=mbar)
-
-    shapley_table = get_shapley_table(contributions=contributions,
-                                      permutation_space=permutation_space,
-                                      dual_progress_bars=dual_progress_bars,
-                                      lesioned=lesioned, mbar=mbar)[elements]
-    return shapley_table, contributions, lesion_effects
+    shapley_table = get_shapley_table(permutation_space=permutation_space,
+                                        lesioned=lesioned,
+                                        objective_function=objective_function,
+                                        objective_function_params=objective_function_params)[elements]
+    if return_delayed:
+        return shapley_table
+    
+    with ProgressBar():
+        return shapley_table.compute()
 
 
 @typechecked
@@ -565,10 +403,9 @@ def interaction_2d(*,
                    pair: tuple,
                    objective_function: Callable,
                    objective_function_params: Dict = {},
-                   multiprocessing_method: str = 'joblib',
                    rng: Optional[np.random.Generator] = None,
                    random_seed: Optional[int] = None,
-                   n_parallel_games: int = -1,
+                   return_delayed: bool = False
                    ) -> Tuple:
     """Performs Two dimensional MSA as explain in section 2.3 of [1]. 
     We calculate the Shapley value of element i in the subgame of all elements without element j. 
@@ -652,28 +489,30 @@ def interaction_2d(*,
                       "objective_function": objective_function,
                       "n_permutations": n_permutations,
                       "objective_function_params": objective_function_params,
-                      "multiprocessing_method": multiprocessing_method,
                       "rng": rng,
                       "random_seed": random_seed,
-                      "n_parallel_games": n_parallel_games,
-                      "lazy": False}
+                      "return_delayed": True}
 
     # calculate the shapley values with element j lesioned
-    shapley_i, _, _ = interface(**interface_args, lesioned=pair[1])
+    shapley_i = interface(**interface_args, lesioned=pair[1])
     # get the shapley value of element i with element j leasioned
     gamma_i = _get_gamma(shapley_i, pair[0]).sum()
 
     # calculate the shapley values with element i lesioned
-    shapley_j, _, _ = interface(**interface_args, lesioned=pair[0])
+    shapley_j= interface(**interface_args, lesioned=pair[0])
     # get the shapley value of element j with element i leasioned
     gamma_j = _get_gamma(shapley_j, pair[1]).sum()
 
     # calculate the shapley values with element i and j together in every combination
-    shapley_ij, _, _ = interface(**interface_args, pair=pair)
+    shapley_ij = interface(**interface_args, pair=pair)
     # get the sum of the shapley value of element i and j
     gamma_ij = _get_gamma(shapley_ij, pair).sum()
 
-    return gamma_ij, gamma_i, gamma_j
+    if return_delayed:
+        return gamma_ij, gamma_i, gamma_j
+    
+    with ProgressBar():
+        return dask.compute(gamma_ij, gamma_i, gamma_j)
 
 
 @typechecked
@@ -683,10 +522,9 @@ def network_interaction_2d(*,
                            pairs: Optional[list] = None,
                            objective_function: Callable,
                            objective_function_params: Dict = {},
-                           multiprocessing_method: str = 'joblib',
                            rng: Optional[np.random.Generator] = None,
                            random_seed: Optional[int] = None,
-                           n_parallel_games: int = -1,
+                           return_delayed: bool = False
                            ) -> np.ndarray:
     """Performs Two dimensional MSA as explain in section 2.3 of [1]
     for every possible pair of elements and returns a symmetric matrix of
@@ -772,25 +610,28 @@ contributions_excluding
                       "n_permutations": n_permutations,
                       "objective_function_params": objective_function_params,
                       "objective_function": objective_function,
-                      "multiprocessing_method": multiprocessing_method,
                       "rng": rng,
                       "random_seed": random_seed,
-                      "n_parallel_games": n_parallel_games}
+                      "return_delayed": True}
 
     interactions = np.zeros((len(elements), len(elements)))
 
     # iterate over all the pairs to run interaction_2d
-    for x, y in tqdm(all_pairs, desc="Running interface 2d for all pair of nodes:"):
+    for x, y in all_pairs:
         gammaAB, gammaA, gammaB = interaction_2d(pair=(elements[x], elements[y]),
                                                  **interface_args)
-        if not _is_number(gammaAB):
-            raise NotImplementedError("`network_interaction_2d` does not work with"
-                                      " timeseries or multiscore contributions yet.")
+        # if not _is_number(gammaAB):
+        #     raise NotImplementedError("`network_interaction_2d` does not work with"
+        #                               " timeseries or multiscore contributions yet.")
         interactions[x, y] = interactions[y, x] = gammaAB - gammaA - gammaB
+    if return_delayed:
+        return interactions
+    
+    with ProgressBar():
+        return dask.compute(interactions)
 
-    return interactions
 
-
+@dask.delayed
 def _get_gamma(shapley_table, idx):
     """returns shapley value of elements in idx
 
@@ -801,12 +642,10 @@ def _get_gamma(shapley_table, idx):
     Returns:
         shapley value of elements in idx
     """
-    if shapley_table.index.nlevels == 1:
-        gamma = shapley_table[list(idx)].mean()
-    elif "timestamp" in shapley_table.index.names:
-        gamma = shapley_table[list(idx)].groupby(level=1).mean()
+    if isinstance(shapley_table, ShapleyTable):
+        gamma = shapley_table.shapley_values[list(idx)]
     else:
-        gamma = shapley_table[list(idx)].groupby(level=0).mean()
+        gamma = ShapleyModeND[list(idx)]
     return gamma
 
 
@@ -815,12 +654,8 @@ def estimate_causal_influences(elements: list,
                                objective_function: Callable,
                                objective_function_params: Optional[dict] = None,
                                target_elements: Optional[list] = None,
-                               multiprocessing_method: str = 'joblib',
-                               n_cores: int = -1,
                                n_permutations: int = 1000,
                                permutation_seed: Optional[int] = None,
-                               parallelize_over_games=False,
-                               lazy=True
                                ) -> pd.DataFrame:
     """
     Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function
@@ -915,63 +750,30 @@ def estimate_causal_influences(elements: list,
     target_elements = target_elements if target_elements else elements
     objective_function_params = objective_function_params if objective_function_params else {}
 
-    if parallelize_over_games:
-        # run causal_influence_single_element for all target elements.
-        mbar = master_bar(enumerate(target_elements), total=len(target_elements))
-        results = [causal_influence_single_element(elements, objective_function,
-                                                   objective_function_params, n_permutations,
-                                                   n_cores, multiprocessing_method,
-                                                   permutation_seed, index, element, lazy, mbar) for index, element in mbar]
-
-    elif multiprocessing_method == 'ray':
-        if importlib.util.find_spec("ray") is None:
-            raise ImportError(
-                "The ray package is required to run this algorithm. Install and use at your own risk.")
-
-        import ray
-        if n_cores <= 0:
-            warnings.warn("A zero or a negative n_cores was passed and ray doesn't like so "
-                          "to fix that ray.init() will get no arguments, "
-                          "which means use all cores as n_cores = -1 does for joblib.", stacklevel=2)
-            ray.init()
-        else:
-            ray.init(num_cpus=n_cores)
-
-        result_ids = [ray.remote(causal_influence_single_element).remote(elements, objective_function,
-                                                                         objective_function_params, n_permutations,
-                                                                         1, 'joblib',
-                                                                         permutation_seed, index, element, lazy, None) for index, element in enumerate(target_elements)]
-
-        for _ in tqdm(ut.ray_iterator(result_ids), total=len(result_ids)):
-            pass
-
-        results = ray.get(result_ids)
-        ray.shutdown()
-
-    else:
-        with tqdm_joblib(desc="Doing Nodes: ", total=len(target_elements)) as pb:
-            results = (Parallel(n_jobs=n_cores)(delayed(causal_influence_single_element)(elements, objective_function,
-                                                                                     objective_function_params, n_permutations,
-                                                                                     1, 'joblib',
-                                                                                     permutation_seed, index, element, lazy) for index, element in enumerate(target_elements)))
+    results = [causal_influence_single_element(elements, objective_function,
+                                                objective_function_params, n_permutations,
+                                                permutation_seed, index, element, return_delayed=True) for index, element in enumerate(target_elements)]
+    
+    with ProgressBar():
+        results = dask.compute(results)[0]
 
     _, contribution_type = results[0]
-    shapley_values = [r[0] for r in results]
 
-    causal_influences = pd.DataFrame(
-        shapley_values, columns=elements) if contribution_type == "scaler" else pd.concat(shapley_values, keys=elements)
+    if contribution_type=="scaler":
+        shapley_values = [r[0].shapley_values for r in results]
+        return pd.DataFrame(shapley_values, columns=elements)
+
+
+    shapley_values = [r[0] for r in results]
+    causal_influences = pd.concat(shapley_values, keys=elements)
     
-    if contribution_type == "scaler":
-        return causal_influences
-    if contribution_type == "multi_scores":
-        return causal_influences.swaplevel().sort_index(level=0) 
     return causal_influences[causal_influences.index.levels[0]]
 
 
 def causal_influence_single_element(elements, objective_function,
                                     objective_function_params, n_permutations,
-                                    n_parallel_games, multiprocessing_method,
-                                    permutation_seed, index, element, lazy=True, mbar=None):
+                                    permutation_seed, index, element,
+                                    return_delayed: bool = False):
     """
     Estimates the causal contribution (Shapley values) of a node on the rest of the network. Basically, this function
     performs MSA and tracks the changes in the objective_function of the target node.
@@ -1043,17 +845,17 @@ def causal_influence_single_element(elements, objective_function,
     # Takes the target out of the to_be_lesioned list
     without_target = set(elements).difference({element})
 
-    shapley_output, _, _ = interface(n_permutations=n_permutations,
+    shapley_output = interface(n_permutations=n_permutations,
                                                 elements=list(without_target),
-                                                dual_progress_bars= False,
                                                 objective_function=objective_function,
                                                 objective_function_params=objective_function_params,
-                                                n_parallel_games=n_parallel_games,
-                                                multiprocessing_method=multiprocessing_method,
                                                 random_seed=permutation_seed,
-                                                lazy=lazy,
-                                                mbar=mbar)
+                                                return_delayed=True)
+    
+    contribution_type, _ = _get_contribution_type(objective_function(tuple(), **objective_function_params))
 
-    if shapley_output.contribution_type in ("scaler", "multi_scores"):
-        return shapley_output.shapley_values, shapley_output.contribution_type
-    return shapley_output.shapley_modes, shapley_output.contribution_type
+    if return_delayed:
+        return shapley_output, contribution_type
+    
+    with ProgressBar():
+        return shapley_output.compute(), contribution_type

@@ -47,7 +47,7 @@ def test_zero_negative_pvalue(p_value):
     def one(complements):
         return 1
 
-    for_bootstrap, _, _ = msa.interface(elements=elements,
+    for_bootstrap= msa.interface(elements=elements,
                                         n_permutations=100,
                                         objective_function=one)
     with pytest.raises(ValueError):
