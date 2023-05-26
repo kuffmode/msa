@@ -5,7 +5,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-#TODO: Update Code To Use Custom Accessors Instead: https://pandas.pydata.org/docs/development/extending.html#registering-custom-accessors
+# TODO: Update Code To Use Custom Accessors Instead: https://pandas.pydata.org/docs/development/extending.html#registering-custom-accessors
+
 
 class ShapleyTable(pd.DataFrame):
     @property
@@ -43,7 +44,7 @@ class ShapleyTableND(pd.DataFrame):
     def __init__(self, dataFrame: pd.DataFrame, shape: Optional[list] = None):
         super().__init__(dataFrame)
         self._shape = shape
-    
+
     @property
     def _constructor(self):
         return ShapleyTableND
@@ -79,7 +80,7 @@ class ShapleyModeND(pd.DataFrame):
     def __init__(self, dataFrame: pd.DataFrame, shape: Optional[list] = None):
         super().__init__(dataFrame)
         self._shape = shape
-    
+
     @property
     def contribution_type(self):
         return "nd"

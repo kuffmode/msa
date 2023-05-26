@@ -57,7 +57,7 @@ def _get_contribution_type(contributions: dict) -> Tuple[str, Union[dict, np.num
             "Objective function returned values of different data types")
 
     arbitrary_contribution = next(iter(contributions.values()))
-    
+
     if isinstance(arbitrary_contribution, np.ndarray):
         return "nd", arbitrary_contribution
 
@@ -81,6 +81,7 @@ def _check_get_shapley_table_args(contributions, objective_function, lazy):
         if contributions is None:
             raise ValueError(
                 "A contributions dictionary is neccessary for the calculation of shapley table if lazy is set to False")
+
 
 def _is_number(x) -> bool:
     return isinstance(x, (Number, np.number))

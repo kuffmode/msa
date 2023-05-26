@@ -2,6 +2,7 @@ from msapy import msa
 import pytest
 import numpy as np
 
+
 def create_mask(image_size, grid_size, box):
     x = box // grid_size
     y = box % grid_size
@@ -23,12 +24,16 @@ def mask_image(image, mask):
     masked_image[mask] = 0
     return masked_image
 
+
 np.random.seed(0)
 image = (np.random.random(size=(10, 10, 3)))
-contributions = np.array([mask_image(image, create_mask(10, 2, i)) for i in range(16)])
+contributions = np.array(
+    [mask_image(image, create_mask(10, 2, i)) for i in range(16)])
+
 
 def objective_func(complements):
     return (image - contributions[complements, :].sum(0))
+
 
 @pytest.mark.parametrize("n_parallel_games, lazy", [[1, True], [-1, True], [1, False], [-1, False]])
 def test_contributions(n_parallel_games, lazy):
@@ -38,9 +43,10 @@ def test_contributions(n_parallel_games, lazy):
         objective_function=objective_func,
         n_parallel_games=n_parallel_games,
         lazy=lazy
-        )
+    )
 
     assert np.allclose(shapley_mode.get_total_contributions(), image)
+
 
 @pytest.mark.parametrize("n_cores, multiprocessing_method, parallelize_over_games",
                          [(1, 'joblib', True), (-1, 'joblib', True), (1, 'joblib', False), (-1, 'joblib', False)])

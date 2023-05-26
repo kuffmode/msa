@@ -293,7 +293,7 @@ def get_shapley_table(*,
                       objective_function_params: Optional[Dict] = None,
                       lazy=False,
                       save_permutations: bool = False,
-                      dual_progress_bars: bool=True,
+                      dual_progress_bars: bool = True,
                       mbar: Optional[MasterBar] = None,) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
@@ -315,7 +315,7 @@ def get_shapley_table(*,
 
         lesioned (Optional[any]):
             leseioned element that will not be present in any combination
-        
+
         objective_function (Callable):
             The game (in-silico experiment). It should get the complement set and return one numeric value
             either int or float.
@@ -381,7 +381,7 @@ def get_shapley_table(*,
 
         dual_progress_bar (bool): If set to true, you will have two progress bars. One parent that will track the permutations, other child that
             will track the elements. Its ignored in case the mbar is provided
-        
+
         mbar (MasterBar): A Fastprogress MasterBar. Use it in case you're calling the interface multiple times to have a nester progress bar.
 
     Returns:
@@ -403,14 +403,16 @@ def get_shapley_table(*,
     if not lazy:
         parent_bar = enumerate(set(permutation_space))
     elif (not dual_progress_bars) or mbar:
-        parent_bar = progress_bar(enumerate(set(permutation_space)), total=len(permutation_space), leave=False, parent=mbar)
+        parent_bar = progress_bar(enumerate(set(permutation_space)), total=len(
+            permutation_space), leave=False, parent=mbar)
     elif lazy:
-        parent_bar = master_bar(enumerate(set(permutation_space)), total=len(permutation_space))
-        
+        parent_bar = master_bar(
+            enumerate(set(permutation_space)), total=len(permutation_space))
 
     for i, permutation in parent_bar:
         isolated_contributions = []  # got to be a better way!
-        child_bar = enumerate(permutation) if not (dual_progress_bars and lazy) else progress_bar(enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
+        child_bar = enumerate(permutation) if not (dual_progress_bars and lazy) else progress_bar(
+            enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
         # iterate over all elements in the permutation to calculate their isolated contributions
         for index, _ in child_bar:
             including = frozenset(permutation[:index + 1]) - lesioned
@@ -427,8 +429,7 @@ def get_shapley_table(*,
 
         if contribution_type == 'nd' and not save_permutations:
             isolated_contributions = [x for _, x in sorted(zip(permutation, isolated_contributions))]
-            shapley_table += (np.array(isolated_contributions) -
-                              shapley_table) / (i + 1)
+            shapley_table += (np.array(isolated_contributions) - shapley_table) / (i + 1)
         else:
             shapley_table[permutation] = np.array(isolated_contributions)
 
@@ -441,8 +442,9 @@ def get_shapley_table(*,
         return ShapleyModeND(shapley_table, arbitrary_contrib.shape)
 
     shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
-                                    for permutations, shapleys in shapley_table.items()])
+                                  for permutations, shapleys in shapley_table.items()])
     return ShapleyTableND.from_dataframe(shapley_table, shape=arbitrary_contrib.shape) if (contribution_type == "nd") else ShapleyTable(shapley_table)
+
 
 @typechecked
 def interface(*,
@@ -459,7 +461,7 @@ def interface(*,
               n_parallel_games: int = -1,
               lazy: bool = True,
               save_permutations: bool = False,
-              dual_progress_bars: bool=True,
+              dual_progress_bars: bool = True,
               mbar: Optional[MasterBar] = None
               ) -> pd.DataFrame:
     """
@@ -544,9 +546,9 @@ def interface(*,
 
         dual_progress_bar (bool): If set to true, you will have two progress bars. One parent that will track the permutations, other child that
             will track the elements. Its ignored in case the mbar is provided
-        
+
         mbar (MasterBar): A Fastprogress MasterBar. Use it in case you're calling the interface multiple times to have a nester progress bar.
-        
+
 
     Returns:
         Tuple[pd.DataFrame, Dict, Dict]: shapley_table, contributions, lesion_effects
@@ -584,19 +586,19 @@ def interface(*,
         return shapley_table
 
     combination_space = make_combination_space(permutation_space=permutation_space,
-                                                pair=pair,
-                                                lesioned=lesioned)
+                                               pair=pair,
+                                               lesioned=lesioned)
     complement_space = make_complement_space(combination_space=combination_space,
-                                                elements=elements,
-                                                lesioned=lesioned)
+                                             elements=elements,
+                                             lesioned=lesioned)
 
     if n_parallel_games == 1:
         contributions, _ = take_contributions(elements=elements,
-                                                           complement_space=complement_space,
-                                                           combination_space=combination_space,
-                                                           objective_function=objective_function,
-                                                           objective_function_params=objective_function_params,
-                                                           mbar=mbar)
+                                              complement_space=complement_space,
+                                              combination_space=combination_space,
+                                              objective_function=objective_function,
+                                              objective_function_params=objective_function_params,
+                                              mbar=mbar)
     else:
         contributions, _ = ut.parallelized_take_contributions(
             multiprocessing_method=multiprocessing_method,
@@ -973,7 +975,8 @@ def estimate_causal_influences(elements: list,
 
     if parallelize_over_games:
         # run causal_influence_single_element for all target elements.
-        mbar = master_bar(enumerate(target_elements), total=len(target_elements))
+        mbar = master_bar(enumerate(target_elements),
+                          total=len(target_elements))
         results = [causal_influence_single_element(elements, objective_function,
                                                    objective_function_params, n_permutations,
                                                    n_cores, multiprocessing_method,
@@ -1007,16 +1010,16 @@ def estimate_causal_influences(elements: list,
     else:
         with tqdm_joblib(desc="Doing Nodes: ", total=len(target_elements)) as pb:
             results = (Parallel(n_jobs=n_cores)(delayed(causal_influence_single_element)(elements, objective_function,
-                                                                                     objective_function_params, n_permutations,
-                                                                                     1, 'joblib',
-                                                                                     permutation_seed, index, element, lazy) for index, element in enumerate(target_elements)))
+                                                                                         objective_function_params, n_permutations,
+                                                                                         1, 'joblib',
+                                                                                         permutation_seed, index, element, lazy) for index, element in enumerate(target_elements)))
 
     _, contribution_type = results[0]
     shapley_values = [r[0] for r in results]
 
     causal_influences = pd.DataFrame(
         shapley_values, columns=elements) if contribution_type == "scaler" else pd.concat(shapley_values, keys=elements)
-    
+
     if contribution_type == "scaler":
         return causal_influences
     return causal_influences[causal_influences.index.levels[0]]
@@ -1098,16 +1101,16 @@ def causal_influence_single_element(elements, objective_function,
     without_target = set(elements).difference({element})
 
     shapley_output = interface(n_permutations=n_permutations,
-                                                elements=list(without_target),
-                                                dual_progress_bars= False,
-                                                objective_function=objective_function,
-                                                objective_function_params=objective_function_params,
-                                                n_parallel_games=n_parallel_games,
-                                                multiprocessing_method=multiprocessing_method,
-                                                random_seed=permutation_seed,
-                                                lazy=lazy,
-                                                save_permutations=False,
-                                                mbar=mbar)
+                               elements=list(without_target),
+                               dual_progress_bars=False,
+                               objective_function=objective_function,
+                               objective_function_params=objective_function_params,
+                               n_parallel_games=n_parallel_games,
+                               multiprocessing_method=multiprocessing_method,
+                               random_seed=permutation_seed,
+                               lazy=lazy,
+                               save_permutations=False,
+                               mbar=mbar)
 
     if shapley_output.contribution_type == "scaler":
         return shapley_output.shapley_values, shapley_output.contribution_type
