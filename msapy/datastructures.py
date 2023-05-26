@@ -37,38 +37,23 @@ class ShapleyTable(pd.DataFrame):
             plt.savefig(savepath, dpi=dpi, bbox_inches='tight')
 
 
-class ShapleyTableMultiScores(pd.DataFrame):
-    @property
-    def _constructor(self):
-        return ShapleyTableMultiScores
+class ShapleyTableND(pd.DataFrame):
+    _metadata = ["_shape"]
+
+    def __init__(self, dataFrame: pd.DataFrame, shape: Optional[list] = None):
+        super().__init__(dataFrame)
+        self._shape = shape
     
     @property
-    def contribution_type(self):
-        return "multi_scores"
-
-    @property
-    def shapley_values(self):
-        return self.groupby(level=0).mean()
-
-    def get_shapley_table_score(self, score):
-        return ShapleyTable(self.loc[score])
-
-    @property
-    def scores(self):
-        return list(self.index.levels[0])
-
-
-class ShapleyTableTimeSeries(pd.DataFrame):
-    @property
     def _constructor(self):
-        return ShapleyTableTimeSeries
+        return ShapleyTableND
 
     @property
     def contribution_type(self):
-        return "timeseries"
+        return "nd"
 
     @classmethod
-    def from_dataframe(cls, shapley_table):
+    def from_dataframe(cls, shapley_table, shape):
         num_permutation, num_nodes = shapley_table.shape
         data = np.stack(shapley_table.values.flatten())
         mode_size = data.shape[-1]
@@ -81,21 +66,11 @@ class ShapleyTableTimeSeries(pd.DataFrame):
                                      columns=shapley_table.columns
                                      )
         shapley_table.index.names = [None, "timestamps"]
-        return cls(shapley_table)
+        return cls(shapley_table, shape)
 
-    @cached_property
+    @property
     def shapley_modes(self):
-        return self.groupby(level=1).mean()
-
-    def plot_total_contributions(self, dpi=100, xlabel="Time steps", ylabel="Contribution", title="Total Contributions", savepath=None):
-        plt.figure(dpi=dpi)
-        plt.plot(self.shapley_modes.sum(1), lw=4.5)
-        plt.title(title)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-
-        if savepath:
-            plt.savefig(savepath, dpi=dpi, bbox_inches='tight')
+        return ShapleyModeND(self.groupby(level=1).mean(), self.shape)
 
 
 class ShapleyModeND(pd.DataFrame):

@@ -22,7 +22,7 @@ def simple_with_interaction(complements):
 # ------------------------------#
 elements = ['a', 'b', 'c']
 cause = 'a'
-shapley_table, contributions, lesions = msa.interface(
+shapley_table = msa.interface(
     elements=elements,
     n_permutations=300,
     objective_function=simple,
@@ -93,7 +93,7 @@ def test_estimate_causal_influence(n_cores, multiprocessing_method, parallelize_
 
 
 def test_interface_parallel_joblib():
-    shapley_table_parallel, _, _ = msa.interface(
+    shapley_table_parallel = msa.interface(
         elements=elements,
         n_permutations=300,
         objective_function=simple,

@@ -21,11 +21,12 @@ def test_contributions(n_parallel_games):
     def score_function(complements):
         return final_wave - data[complements, :].sum(0)
 
-    shapley_table, _, _ = msa.interface(
+    shapley_table = msa.interface(
         elements=elements,
         n_permutations=5_000,
         objective_function=score_function,
-        n_parallel_games=n_parallel_games)
+        n_parallel_games=n_parallel_games,
+        save_permutations=True)
 
     assert np.allclose(shapley_table.groupby(level=1).mean(), data.T)
 

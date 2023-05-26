@@ -57,17 +57,9 @@ def _get_contribution_type(contributions: dict) -> Tuple[str, Union[dict, np.num
             "Objective function returned values of different data types")
 
     arbitrary_contribution = next(iter(contributions.values()))
-
-    if isinstance(arbitrary_contribution, dict):
-        return "multi_scores", arbitrary_contribution
     
     if isinstance(arbitrary_contribution, np.ndarray):
-        if len(arbitrary_contribution.shape) > 1:
-            return "nd", arbitrary_contribution
-        return "timeseries", arbitrary_contribution
-
-    if _is_iterable(arbitrary_contribution) and _is_number(arbitrary_contribution[0]):
-        return "timeseries", arbitrary_contribution
+        return "nd", arbitrary_contribution
 
     if not _is_number(arbitrary_contribution):
         raise ValueError("Objective function should return a value that is either"
