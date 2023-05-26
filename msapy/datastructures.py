@@ -66,7 +66,7 @@ class ShapleyTableND(pd.DataFrame):
                                          [range(num_permutation), range(mode_size)], names=[None, "mode_size"]),
                                      columns=shapley_table.columns
                                      )
-        shapley_table.index.names = [None, "timestamps"]
+        shapley_table.index.names = [None, "ND"]
         return cls(shapley_table, shape)
 
     @property
