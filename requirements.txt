@@ -1,4 +1,4 @@
-pandas~=2
+pandas~=2.0.0
 typeguard~=2.13.0
 joblib>=1.2
 numpy>=1.22
