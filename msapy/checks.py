@@ -58,16 +58,8 @@ def _get_contribution_type(contributions: dict) -> Tuple[str, Union[dict, np.num
 
     arbitrary_contribution = next(iter(contributions.values()))
 
-    if isinstance(arbitrary_contribution, dict):
-        return "multi_scores", arbitrary_contribution
-    
     if isinstance(arbitrary_contribution, np.ndarray):
-        if len(arbitrary_contribution.shape) > 1:
-            return "nd", arbitrary_contribution
-        return "timeseries", arbitrary_contribution
-
-    if _is_iterable(arbitrary_contribution) and _is_number(arbitrary_contribution[0]):
-        return "timeseries", arbitrary_contribution
+        return "nd", arbitrary_contribution
 
     if not _is_number(arbitrary_contribution):
         raise ValueError("Objective function should return a value that is either"
@@ -89,6 +81,7 @@ def _check_get_shapley_table_args(contributions, objective_function, lazy):
         if contributions is None:
             raise ValueError(
                 "A contributions dictionary is neccessary for the calculation of shapley table if lazy is set to False")
+
 
 def _is_number(x) -> bool:
     return isinstance(x, (Number, np.number))

@@ -25,24 +25,49 @@ def mask_image(image, mask):
     return masked_image
 
 
+np.random.seed(0)
+image = (np.random.random(size=(10, 10, 3)))
+contributions = np.array(
+    [mask_image(image, create_mask(10, 2, i)) for i in range(16)])
+
+
+def objective_func(complements):
+    return (image - contributions[complements, :].sum(0))
+
+
 @pytest.mark.parametrize("n_parallel_games, lazy", [[1, True], [-1, True], [1, False], [-1, False]])
 def test_contributions(n_parallel_games, lazy):
-    image = (np.random.random(size=(512, 512, 3)) * 255).astype(np.int16)
-    contributions = [mask_image(image, create_mask(512, 4, i)) for i in range(16)]
-
-    def objective_func(complements):
-        contrib = image.copy()
-        for i in complements:
-            contrib -= contributions[i]
-
-        return contrib.astype(np.int16)
-
-    shapley_mode, _, _ = msa.interface(
-        elements=list(range(16)),
+    shapley_mode = msa.interface(
+        elements=list(range(4)),
         n_permutations=100,
         objective_function=objective_func,
         n_parallel_games=n_parallel_games,
         lazy=lazy
-        )
+    )
 
     assert np.allclose(shapley_mode.get_total_contributions(), image)
+
+
+@pytest.mark.parametrize("n_cores, multiprocessing_method, parallelize_over_games",
+                         [(1, 'joblib', True), (-1, 'joblib', True), (1, 'joblib', False), (-1, 'joblib', False)])
+def test_estimate_causal_influence(n_cores, multiprocessing_method, parallelize_over_games):
+    true_causal_influences = np.random.normal(0, 5, (4, 4, 100))
+
+    true_causal_influences[np.diag_indices(4)] = 0
+
+    def objective_function_causal_influence(complements, index):
+        return true_causal_influences[index].sum(0).reshape(2, 2, 5, 5) - true_causal_influences[index, complements].sum(0).reshape(2, 2, 5, 5)
+
+    estimated_causal_influences = msa.estimate_causal_influences(elements=list(range(4)),
+                                                                 n_permutations=10000,
+                                                                 objective_function=objective_function_causal_influence,
+                                                                 multiprocessing_method=multiprocessing_method,
+                                                                 parallelize_over_games=parallelize_over_games,
+                                                                 n_cores=n_cores)
+
+    estimated_causal_influences = estimated_causal_influences.groupby(
+        level=0).mean().values
+    np.fill_diagonal(estimated_causal_influences, 0)
+
+    assert np.allclose(estimated_causal_influences,
+                       true_causal_influences.mean(2))

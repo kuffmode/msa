@@ -13,7 +13,7 @@ from tqdm_joblib import tqdm_joblib
 
 from msapy import utils as ut
 from msapy.checks import _check_get_shapley_table_args, _check_valid_combination_space, _check_valid_elements, _check_valid_n_permutations, _check_valid_permutation_space, _get_contribution_type, _is_number
-from msapy.datastructures import ShapleyModeND, ShapleyTable, ShapleyTableMultiScores, ShapleyTableTimeSeries
+from msapy.datastructures import ShapleyModeND, ShapleyTable, ShapleyTableND
 
 
 @typechecked
@@ -292,7 +292,8 @@ def get_shapley_table(*,
                       objective_function: Optional[Callable] = None,
                       objective_function_params: Optional[Dict] = None,
                       lazy=False,
-                      dual_progress_bars: bool=True,
+                      save_permutations: bool = False,
+                      dual_progress_bars: bool = True,
                       mbar: Optional[MasterBar] = None,) -> pd.DataFrame:
     """
     Calculates Shapley values based on the filled contribution_space.
@@ -315,11 +316,77 @@ def get_shapley_table(*,
         lesioned (Optional[any]):
             leseioned element that will not be present in any combination
 
+        objective_function (Callable):
+            The game (in-silico experiment). It should get the complement set and return one numeric value
+            either int or float.
+            This function is just calling it as: objective_function(complement, **objective_function_params)
+
+            An example using networkx with some tips:
+            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)
+
+            def local_efficiency(complements, graph):
+                if len(complements) < 0:
+                    # the network is intact so:
+                    return nx.local_efficiency(graph)
+
+                elif len(complements) == len(graph):
+                    # the network is fully lesioned so:
+                    return 0.0
+
+                else:
+                    # lesion the system, calculate things
+                    lesioned = graph.copy()
+                    lesioned.remove_nodes_from(complements)
+                    return nx.local_efficiency(lesioned)
+
+        objective_function_params (Dict):
+            Kwargs for the objective_function.
+
+        lesioned (Optional[any]):
+            leseioned element that will not be present in any combination
+
+        multiprocessing_method (str):
+            So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+            documentations to see how to go for it. I guess ray works better on HPC clusters (if they support it tho!)
+            and probably doesn't suffer from the sneaky "memory leakage" of joblib. But just by playing around,
+            I realized joblib is faster for tasks that are small themselves. Remedies are here:
+            https://docs.ray.io/en/latest/auto_examples/tips-for-first-time.html
+
+            Note: Generally, multiprocessing isn't always faster as explained above. Use it when the function itself
+            takes some like each game takes longer than 0.5 seconds or so. For example, a function that sleeps for a
+            second on a set of 10 elements with 1000 permutations each (1024 games) performs as follows:
+
+                - no parallel: 1020 sec
+                - joblib: 63 sec
+                - ray: 65 sec
+
+            That makes sense since I have 16 cores and 1000/16 is around 62.
+
+        rng (Optional[np.random.Generator]): Numpy random generator object used for reproducable results. Default is None.
+
+        random_seed (Optional[int]):
+            sets the random seed of the sampling process. Only used when `rng` is None. Default is None.
+
+        n_parallel_games (int):
+            Number of parallel jobs (number of to-be-occupied cores),
+            -1 means all CPU cores and 1 means a serial process.
+            I suggest using 1 for debugging since things get messy in parallel!
+
+        lazy (bool): if set to True, objective function will be called lazily instead of calling it all at once and storing the outputs in a dict.
+            Setting it to True saves a lot of memory and might even be faster in certain cases.
+
+        save_permutations (bool): If set to True, the shapley values are calculated by calculating the running mean of the permutations instead of
+            storing the permutations. This parameter is ignored in case the objective function returns a scaler.
+
+        dual_progress_bar (bool): If set to true, you will have two progress bars. One parent that will track the permutations, other child that
+            will track the elements. Its ignored in case the mbar is provided
+
+        mbar (MasterBar): A Fastprogress MasterBar. Use it in case you're calling the interface multiple times to have a nester progress bar.
+
     Returns:
         pd.DataFrame: Shapley table or a dict of Shapely tables, columns will be 
         elements and indices will be samples (permutations). 
-        It will be a Multi-Index DataFrame if the contributions are a dict
-        i.e. the objective function returns multiple score functions (eg. accuracy, f1_score, etc.)
         It will be a Multi-Index DataFrame if the contributions are a timeseries.
         The index at `level=1` will be the timestamps
     """
@@ -328,29 +395,24 @@ def get_shapley_table(*,
 
     contributions = {tuple(): objective_function(tuple(), **objective_function_params)} if lazy else contributions
 
-    contribution_type, arbitrary_contrib = _get_contribution_type(
-        contributions)
-
-    # if it's a multi score problem, then we make all the contributions to numpy arrays for efficient calculations later
-    if contribution_type == 'multi_scores':
-        scores = list(arbitrary_contrib.keys())
-        contributions = {k: np.array(list(v.values()))
-                         for k, v in contributions.items()}
+    contribution_type, arbitrary_contrib = _get_contribution_type(contributions)
 
     lesioned = set(lesioned) if lesioned else set()
-    shapley_table = {} if contribution_type != 'nd' else 0
+    shapley_table = 0 if (contribution_type == 'nd' and not save_permutations) else {}
 
     if not lazy:
         parent_bar = enumerate(set(permutation_space))
     elif (not dual_progress_bars) or mbar:
-        parent_bar = progress_bar(enumerate(set(permutation_space)), total=len(permutation_space), leave=False, parent=mbar)
+        parent_bar = progress_bar(enumerate(set(permutation_space)), total=len(
+            permutation_space), leave=False, parent=mbar)
     elif lazy:
-        parent_bar = master_bar(enumerate(set(permutation_space)), total=len(permutation_space))
-        
+        parent_bar = master_bar(
+            enumerate(set(permutation_space)), total=len(permutation_space))
 
     for i, permutation in parent_bar:
         isolated_contributions = []  # got to be a better way!
-        child_bar = enumerate(permutation) if not (dual_progress_bars and lazy) else progress_bar(enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
+        child_bar = enumerate(permutation) if not (dual_progress_bars and lazy) else progress_bar(
+            enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
         # iterate over all elements in the permutation to calculate their isolated contributions
         for index, _ in child_bar:
             including = frozenset(permutation[:index + 1]) - lesioned
@@ -361,44 +423,27 @@ def get_shapley_table(*,
                 contributions_including = objective_function(tuple(excluding), **objective_function_params)
                 contributions_excluding = objective_function(tuple(including), **objective_function_params)
 
-                if contribution_type == 'multi_scores':
-                    contributions_including = np.array(list(contributions_including.values()))
-                    contributions_excluding = np.array(list(contributions_excluding.values()))
-
-                isolated_contributions.append(
-                    contributions_including - contributions_excluding)
+                isolated_contributions.append(contributions_including - contributions_excluding)
             else:
-                isolated_contributions.append(
-                    contributions[including] - contributions[excluding])
-        if contribution_type == 'nd':
-            isolated_contributions = [x for _, x in sorted(
-                zip(permutation, isolated_contributions))]
-            shapley_table += (np.array(isolated_contributions) -
-                              shapley_table) / (i + 1)
+                isolated_contributions.append(contributions[including] - contributions[excluding])
+
+        if contribution_type == 'nd' and not save_permutations:
+            isolated_contributions = [x for _, x in sorted(zip(permutation, isolated_contributions))]
+            shapley_table += (np.array(isolated_contributions) - shapley_table) / (i + 1)
         else:
             shapley_table[permutation] = np.array(isolated_contributions)
 
     # post processing of shapley values based on what type of contribution it is. The format of output will vary based on if the
     # values are multi-scores, timeseries, etc.
-    if contribution_type == 'nd':
+    if contribution_type == 'nd' and not save_permutations:
         shapley_table = shapley_table.reshape(shapley_table.shape[0], -1).T
         shapley_table = pd.DataFrame(
             shapley_table, columns=sorted(permutation))
         return ShapleyModeND(shapley_table, arbitrary_contrib.shape)
 
-    if contribution_type != 'multi_scores':
-        shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
-                                      for permutations, shapleys in shapley_table.items()])
-        return ShapleyTableTimeSeries.from_dataframe(shapley_table) if (contribution_type == "timeseries") else ShapleyTable(shapley_table)
-
-    shapley_values = []
-    for i in range(len(arbitrary_contrib)):
-        shapley_values.append(pd.DataFrame([dict(zip(permutations, shapleys[:, i]))
-                                            for permutations, shapleys in shapley_table.items()]))
-
-    shapley_table = pd.concat(shapley_values, keys=scores)
-
-    return ShapleyTableMultiScores(shapley_table)
+    shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
+                                  for permutations, shapleys in shapley_table.items()])
+    return ShapleyTableND.from_dataframe(shapley_table, shape=arbitrary_contrib.shape) if (contribution_type == "nd") else ShapleyTable(shapley_table)
 
 
 @typechecked
@@ -415,9 +460,10 @@ def interface(*,
               random_seed: Optional[int] = None,
               n_parallel_games: int = -1,
               lazy: bool = True,
-              dual_progress_bars: bool=True,
+              save_permutations: bool = False,
+              dual_progress_bars: bool = True,
               mbar: Optional[MasterBar] = None
-              ) -> Tuple[pd.DataFrame, Dict, Dict]:
+              ) -> pd.DataFrame:
     """
     A wrapper function to call other related functions internally and produces an easy-to-use pipeline.
 
@@ -485,12 +531,24 @@ def interface(*,
         rng (Optional[np.random.Generator]): Numpy random generator object used for reproducable results. Default is None.
 
         random_seed (Optional[int]):
-            sets the random seed of tdual_progress_bars=dual_progress_bars,he sampling process. Only used when `rng` is None. Default is None.
+            sets the random seed of the sampling process. Only used when `rng` is None. Default is None.
 
         n_parallel_games (int):
             Number of parallel jobs (number of to-be-occupied cores),
             -1 means all CPU cores and 1 means a serial process.
             I suggest using 1 for debugging since things get messy in parallel!
+
+        lazy (bool): if set to True, objective function will be called lazily instead of calling it all at once and storing the outputs in a dict.
+            Setting it to True saves a lot of memory and might even be faster in certain cases.
+
+        save_permutations (bool): If set to True, the shapley values are calculated by calculating the running mean of the permutations instead of
+            storing the permutations. This parameter is ignored in case the objective function returns a scaler.
+
+        dual_progress_bar (bool): If set to true, you will have two progress bars. One parent that will track the permutations, other child that
+            will track the elements. Its ignored in case the mbar is provided
+
+        mbar (MasterBar): A Fastprogress MasterBar. Use it in case you're calling the interface multiple times to have a nester progress bar.
+
 
     Returns:
         Tuple[pd.DataFrame, Dict, Dict]: shapley_table, contributions, lesion_effects
@@ -523,26 +581,26 @@ def interface(*,
                                           objective_function=objective_function,
                                           objective_function_params=objective_function_params,
                                           dual_progress_bars=dual_progress_bars,
+                                          save_permutations=save_permutations,
                                           mbar=mbar)[elements]
-        return shapley_table, {}, {}
-
+        return shapley_table
 
     combination_space = make_combination_space(permutation_space=permutation_space,
-                                                pair=pair,
-                                                lesioned=lesioned)
+                                               pair=pair,
+                                               lesioned=lesioned)
     complement_space = make_complement_space(combination_space=combination_space,
-                                                elements=elements,
-                                                lesioned=lesioned)
+                                             elements=elements,
+                                             lesioned=lesioned)
 
     if n_parallel_games == 1:
-        contributions, lesion_effects = take_contributions(elements=elements,
-                                                           complement_space=complement_space,
-                                                           combination_space=combination_space,
-                                                           objective_function=objective_function,
-                                                           objective_function_params=objective_function_params,
-                                                           mbar=mbar)
+        contributions, _ = take_contributions(elements=elements,
+                                              complement_space=complement_space,
+                                              combination_space=combination_space,
+                                              objective_function=objective_function,
+                                              objective_function_params=objective_function_params,
+                                              mbar=mbar)
     else:
-        contributions, lesion_effects = ut.parallelized_take_contributions(
+        contributions, _ = ut.parallelized_take_contributions(
             multiprocessing_method=multiprocessing_method,
             n_cores=n_parallel_games,
             complement_space=complement_space,
@@ -554,8 +612,9 @@ def interface(*,
     shapley_table = get_shapley_table(contributions=contributions,
                                       permutation_space=permutation_space,
                                       dual_progress_bars=dual_progress_bars,
+                                      save_permutations=save_permutations,
                                       lesioned=lesioned, mbar=mbar)[elements]
-    return shapley_table, contributions, lesion_effects
+    return shapley_table
 
 
 @typechecked
@@ -656,20 +715,21 @@ def interaction_2d(*,
                       "rng": rng,
                       "random_seed": random_seed,
                       "n_parallel_games": n_parallel_games,
+                      "save_permutations": False,
                       "lazy": False}
 
     # calculate the shapley values with element j lesioned
-    shapley_i, _, _ = interface(**interface_args, lesioned=pair[1])
+    shapley_i = interface(**interface_args, lesioned=pair[1])
     # get the shapley value of element i with element j leasioned
     gamma_i = _get_gamma(shapley_i, pair[0]).sum()
 
     # calculate the shapley values with element i lesioned
-    shapley_j, _, _ = interface(**interface_args, lesioned=pair[0])
+    shapley_j = interface(**interface_args, lesioned=pair[0])
     # get the shapley value of element j with element i leasioned
     gamma_j = _get_gamma(shapley_j, pair[1]).sum()
 
     # calculate the shapley values with element i and j together in every combination
-    shapley_ij, _, _ = interface(**interface_args, pair=pair)
+    shapley_ij = interface(**interface_args, pair=pair)
     # get the sum of the shapley value of element i and j
     gamma_ij = _get_gamma(shapley_ij, pair).sum()
 
@@ -791,7 +851,7 @@ contributions_excluding
     return interactions
 
 
-def _get_gamma(shapley_table, idx):
+def _get_gamma(shapley, idx):
     """returns shapley value of elements in idx
 
     Args:
@@ -801,12 +861,10 @@ def _get_gamma(shapley_table, idx):
     Returns:
         shapley value of elements in idx
     """
-    if shapley_table.index.nlevels == 1:
-        gamma = shapley_table[list(idx)].mean()
-    elif "timestamp" in shapley_table.index.names:
-        gamma = shapley_table[list(idx)].groupby(level=1).mean()
-    else:
-        gamma = shapley_table[list(idx)].groupby(level=0).mean()
+    if isinstance(shapley, ShapleyTable):
+        gamma = shapley.shapley_values[list(idx)]
+    elif isinstance(shapley, ShapleyTableND):
+        gamma = shapley[list(idx)]
     return gamma
 
 
@@ -917,7 +975,8 @@ def estimate_causal_influences(elements: list,
 
     if parallelize_over_games:
         # run causal_influence_single_element for all target elements.
-        mbar = master_bar(enumerate(target_elements), total=len(target_elements))
+        mbar = master_bar(enumerate(target_elements),
+                          total=len(target_elements))
         results = [causal_influence_single_element(elements, objective_function,
                                                    objective_function_params, n_permutations,
                                                    n_cores, multiprocessing_method,
@@ -951,20 +1010,18 @@ def estimate_causal_influences(elements: list,
     else:
         with tqdm_joblib(desc="Doing Nodes: ", total=len(target_elements)) as pb:
             results = (Parallel(n_jobs=n_cores)(delayed(causal_influence_single_element)(elements, objective_function,
-                                                                                     objective_function_params, n_permutations,
-                                                                                     1, 'joblib',
-                                                                                     permutation_seed, index, element, lazy) for index, element in enumerate(target_elements)))
+                                                                                         objective_function_params, n_permutations,
+                                                                                         1, 'joblib',
+                                                                                         permutation_seed, index, element, lazy) for index, element in enumerate(target_elements)))
 
     _, contribution_type = results[0]
     shapley_values = [r[0] for r in results]
 
     causal_influences = pd.DataFrame(
         shapley_values, columns=elements) if contribution_type == "scaler" else pd.concat(shapley_values, keys=elements)
-    
+
     if contribution_type == "scaler":
         return causal_influences
-    if contribution_type == "multi_scores":
-        return causal_influences.swaplevel().sort_index(level=0) 
     return causal_influences[causal_influences.index.levels[0]]
 
 
@@ -1043,17 +1100,18 @@ def causal_influence_single_element(elements, objective_function,
     # Takes the target out of the to_be_lesioned list
     without_target = set(elements).difference({element})
 
-    shapley_output, _, _ = interface(n_permutations=n_permutations,
-                                                elements=list(without_target),
-                                                dual_progress_bars= False,
-                                                objective_function=objective_function,
-                                                objective_function_params=objective_function_params,
-                                                n_parallel_games=n_parallel_games,
-                                                multiprocessing_method=multiprocessing_method,
-                                                random_seed=permutation_seed,
-                                                lazy=lazy,
-                                                mbar=mbar)
+    shapley_output = interface(n_permutations=n_permutations,
+                               elements=list(without_target),
+                               dual_progress_bars=False,
+                               objective_function=objective_function,
+                               objective_function_params=objective_function_params,
+                               n_parallel_games=n_parallel_games,
+                               multiprocessing_method=multiprocessing_method,
+                               random_seed=permutation_seed,
+                               lazy=lazy,
+                               save_permutations=False,
+                               mbar=mbar)
 
-    if shapley_output.contribution_type in ("scaler", "multi_scores"):
+    if shapley_output.contribution_type == "scaler":
         return shapley_output.shapley_values, shapley_output.contribution_type
-    return shapley_output.shapley_modes, shapley_output.contribution_type
+    return shapley_output, shapley_output.contribution_type
