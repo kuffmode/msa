@@ -54,24 +54,24 @@ class ShapleyTableND(pd.DataFrame):
         return "nd"
 
     @classmethod
-    def from_dataframe(cls, shapley_table, shape):
-        num_permutation, num_nodes = shapley_table.shape
-        data = np.stack(shapley_table.values.flatten())
-        mode_size = data.shape[-1]
-        data = data.reshape(num_permutation, num_nodes, -1)
+    def from_ndarray(cls, shapley_table, columns):
+        num_permutation, num_nodes = shapley_table.shape[:2]
+        contrib_shape = shapley_table.shape[2:]
+        data = shapley_table.reshape(num_permutation, num_nodes, -1)
+        mode_size = data.shape[2]
         data = data.transpose((0, 2, 1)).reshape((-1, num_nodes))
 
         shapley_table = pd.DataFrame(data=data,
                                      index=pd.MultiIndex.from_product(
                                          [range(num_permutation), range(mode_size)], names=[None, "mode_size"]),
-                                     columns=shapley_table.columns
+                                     columns=columns
                                      )
         shapley_table.index.names = [None, "ND"]
-        return cls(shapley_table, shape)
+        return cls(shapley_table, contrib_shape)
 
     @property
     def shapley_modes(self):
-        return ShapleyModeND(self.groupby(level=1).mean(), self.shape)
+        return ShapleyModeND(self.groupby(level=1).mean(), self._shape)
 
 
 class ShapleyModeND(pd.DataFrame):

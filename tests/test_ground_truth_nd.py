@@ -48,6 +48,20 @@ def test_contributions(n_parallel_games, lazy):
     assert np.allclose(shapley_mode.get_total_contributions(), image)
 
 
+@pytest.mark.parametrize("n_parallel_games, lazy", [[1, True], [-1, True], [1, False], [-1, False]])
+def test_contributions_permutations(n_parallel_games, lazy):
+    shapley_table_nd = msa.interface(
+        elements=list(range(4)),
+        n_permutations=100,
+        objective_function=objective_func,
+        n_parallel_games=n_parallel_games,
+        save_permutations=True,
+        lazy=lazy
+    )
+
+    assert np.allclose(shapley_table_nd.shapley_modes.get_total_contributions(), image)
+
+
 @pytest.mark.parametrize("n_cores, multiprocessing_method, parallelize_over_games",
                          [(1, 'joblib', True), (-1, 'joblib', True), (1, 'joblib', False), (-1, 'joblib', False)])
 def test_estimate_causal_influence(n_cores, multiprocessing_method, parallelize_over_games):

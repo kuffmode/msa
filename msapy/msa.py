@@ -396,25 +396,29 @@ def get_shapley_table(*,
     contributions = {tuple(): objective_function(tuple(), **objective_function_params)} if lazy else contributions
 
     contribution_type, arbitrary_contrib = _get_contribution_type(contributions)
+    contrib_shape = arbitrary_contrib.shape if contribution_type == "nd" else []
 
     lesioned = set(lesioned) if lesioned else set()
-    shapley_table = 0 if (contribution_type == 'nd' and not save_permutations) else {}
+    sorted_elements = sorted(permutation_space[0])
+    permutation_space = set(permutation_space)
 
     if not lazy:
-        parent_bar = enumerate(set(permutation_space))
+        parent_bar = enumerate(permutation_space)
     elif (not dual_progress_bars) or mbar:
-        parent_bar = progress_bar(enumerate(set(permutation_space)), total=len(
+        parent_bar = progress_bar(enumerate(permutation_space), total=len(
             permutation_space), leave=False, parent=mbar)
     elif lazy:
         parent_bar = master_bar(
-            enumerate(set(permutation_space)), total=len(permutation_space))
+            enumerate(permutation_space), total=len(permutation_space))
+
+    shapley_table = 0 if (contribution_type == 'nd' and not save_permutations) else np.zeros((len(permutation_space), len(sorted_elements), *contrib_shape), dtype=float)
 
     for i, permutation in parent_bar:
-        isolated_contributions = []  # got to be a better way!
+        isolated_contributions = np.zeros((len(permutation), *arbitrary_contrib.shape), dtype=float) if contribution_type=="nd" else ([None] * len(permutation))  # got to be a better way!
         child_bar = enumerate(permutation) if not (dual_progress_bars and lazy) else progress_bar(
             enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
         # iterate over all elements in the permutation to calculate their isolated contributions
-        for index, _ in child_bar:
+        for index, element in child_bar:
             including = frozenset(permutation[:index + 1]) - lesioned
             excluding = frozenset(permutation[:index]) - lesioned
 
@@ -422,28 +426,27 @@ def get_shapley_table(*,
             if lazy:
                 contributions_including = objective_function(tuple(excluding), **objective_function_params)
                 contributions_excluding = objective_function(tuple(including), **objective_function_params)
-
-                isolated_contributions.append(contributions_including - contributions_excluding)
+                isolated_contributions[sorted_elements.index(element)] = contributions_including - contributions_excluding
             else:
-                isolated_contributions.append(contributions[including] - contributions[excluding])
+                isolated_contributions[sorted_elements.index(element)] =  contributions[including] - contributions[excluding]
 
         if contribution_type == 'nd' and not save_permutations:
-            isolated_contributions = [x for _, x in sorted(zip(permutation, isolated_contributions))]
-            shapley_table += (np.array(isolated_contributions) - shapley_table) / (i + 1)
+            shapley_table += (isolated_contributions - shapley_table) / (i + 1)
         else:
-            shapley_table[permutation] = np.array(isolated_contributions)
+            shapley_table[i] = np.array(isolated_contributions)
 
     # post processing of shapley values based on what type of contribution it is. The format of output will vary based on if the
     # values are multi-scores, timeseries, etc.
     if contribution_type == 'nd' and not save_permutations:
         shapley_table = shapley_table.reshape(shapley_table.shape[0], -1).T
         shapley_table = pd.DataFrame(
-            shapley_table, columns=sorted(permutation))
+            shapley_table, columns=sorted_elements)
         return ShapleyModeND(shapley_table, arbitrary_contrib.shape)
 
-    shapley_table = pd.DataFrame([dict(zip(permutations, shapleys))
-                                  for permutations, shapleys in shapley_table.items()])
-    return ShapleyTableND.from_dataframe(shapley_table, shape=arbitrary_contrib.shape) if (contribution_type == "nd") else ShapleyTable(shapley_table)
+    if contribution_type == "scaler":
+        return ShapleyTable(pd.DataFrame(shapley_table, columns=sorted_elements))
+    
+    return ShapleyTableND.from_ndarray(shapley_table, columns=sorted_elements)
 
 
 @typechecked
