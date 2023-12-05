@@ -1,0 +1,67 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "license": "https://spdx.org/licenses/MIT",
+    "codeRepository": "https://github.com/kuffmode/msa",
+    "dateCreated": "2021-10-28",
+    "datePublished": "2021-11-01",
+    "dateModified": "2023-11-23",
+    "downloadUrl": "https://github.com/kuffmode/msa/archive/refs/tags/v1.5.tar.gz",
+    "issueTracker": "https://github.com/kuffmode/msa/issues",
+    "name": "MSA",
+    "version": "1.5",
+    "description": "A compact and general-purpose Python package for Multi-perturbation Shapley value Analysis",
+    "applicationCategory": "Computational Neuroscience",
+    "releaseNotes": "Performance optimized. Works with Python 9.11",
+    "referencePublication": "https://doi.org/10.1371/journal.pcbi.1010250",
+    "funder": {
+        "@type": "Organization",
+        "name": "Institute of Computational Neuroscience, University Medical Center Hamburg"
+    },
+    "keywords": [
+        "Neuroscience",
+        "Artificial Intelligence",
+        "Causal Inference",
+        "Game-theory",
+        "Shapley value"
+    ],
+    "programmingLanguage": [
+        "Python"
+    ],
+    "operatingSystem": [
+        "Linux",
+        "Windows",
+        "MacOs"
+    ],
+    "softwareRequirements": [
+        "Python 3.8",
+        "https://github.com/kuffmode/msa/blob/main/requirements.txt"
+    ],
+    "relatedLink": [
+        "https://kuffmode.github.io/msa/"
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "@id": "https://kaysonfakhar.com",
+            "givenName": "Kayson",
+            "familyName": "Fakhar",
+            "email": "kayson.fakhar@gmail.com",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Institute of Computational Neuroscience, University Medical Center Hamburg, Hamburg, Germany"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://github.com/ShreyDixit",
+            "givenName": "Shrey",
+            "familyName": "Dixit",
+            "email": "shrey.akshaj@gmail.com",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Institute of Computational Neuroscience, University Medical Center Hamburg, Hamburg, Germany"
+            }
+        }
+    ]
+}
