@@ -12,7 +12,7 @@
     "version": "1.5",
     "description": "A compact and general-purpose Python package for Multi-perturbation Shapley value Analysis",
     "applicationCategory": "Computational Neuroscience",
-    "releaseNotes": "Performance optimized. Works with Python 9.11",
+    "releaseNotes": "Performance optimized. Works with Python 3.11",
     "referencePublication": "https://doi.org/10.1371/journal.pcbi.1010250",
     "funder": {
         "@type": "Organization",
