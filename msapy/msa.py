@@ -393,12 +393,12 @@ def get_shapley_table(*,
     _check_get_shapley_table_args(contributions, objective_function, lazy)
     _check_valid_permutation_space(permutation_space)
 
-    contributions = {tuple(): objective_function(tuple(), **objective_function_params)} if lazy else contributions
-
-    contribution_type, arbitrary_contrib = _get_contribution_type(contributions)
-    contrib_shape = arbitrary_contrib.shape if contribution_type == "nd" else []
-
     lesioned = {lesioned} if lesioned else set()
+    contributions = {tuple(lesioned): objective_function(tuple(lesioned), **objective_function_params)} if lazy else contributions
+
+    contribution_type, intact_contributions_in_case_lazy = _get_contribution_type(contributions)
+    contrib_shape = intact_contributions_in_case_lazy.shape if contribution_type == "nd" else []
+
     sorted_elements = sorted(permutation_space[0])
     permutation_space = set(permutation_space)
 
@@ -414,19 +414,21 @@ def get_shapley_table(*,
     shapley_table = 0 if (contribution_type == 'nd' and not save_permutations) else np.zeros((len(permutation_space), len(sorted_elements), *contrib_shape), dtype=float)
 
     for i, permutation in parent_bar:
-        isolated_contributions = np.zeros((len(permutation), *arbitrary_contrib.shape), dtype=float) if contribution_type=="nd" else ([None] * len(permutation))  # got to be a better way!
+        isolated_contributions = np.zeros((len(permutation), *intact_contributions_in_case_lazy.shape), dtype=float) if contribution_type=="nd" else ([None] * len(permutation))  # got to be a better way!
         child_bar = enumerate(permutation) if not (dual_progress_bars and lazy) else progress_bar(
             enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
         # iterate over all elements in the permutation to calculate their isolated contributions
+        
+        contributions_including = intact_contributions_in_case_lazy
         for index, element in child_bar:
             including = frozenset(permutation[:index + 1])
             excluding = frozenset(permutation[:index])
 
             # the isolated contribution of an element is the difference of contribution with that element and without that element
             if lazy:
-                contributions_including = objective_function(tuple(excluding.union(lesioned)), **objective_function_params)
                 contributions_excluding = objective_function(tuple(including.union(lesioned)), **objective_function_params)
                 isolated_contributions[sorted_elements.index(element)] = contributions_including - contributions_excluding
+                contributions_including = contributions_excluding
             else:
                 isolated_contributions[sorted_elements.index(element)] =  contributions[including - lesioned] - contributions[excluding - lesioned]
 
@@ -441,7 +443,7 @@ def get_shapley_table(*,
         shapley_table = shapley_table.reshape(shapley_table.shape[0], -1).T
         shapley_table = pd.DataFrame(
             shapley_table, columns=sorted_elements)
-        return ShapleyModeND(shapley_table, arbitrary_contrib.shape)
+        return ShapleyModeND(shapley_table, intact_contributions_in_case_lazy.shape)
 
     if contribution_type == "scaler":
         return ShapleyTable(pd.DataFrame(shapley_table, columns=sorted_elements))
