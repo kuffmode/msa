@@ -6,22 +6,22 @@ from msapy import msa, utils as ut
 # ------------------------------#
 # A function that assigns 1 to the cause and 0 to others
 def simple(complements, causes):
-    if len(causes) != 0 and set(causes).issubset(complements):
+    if len(causes) != 0 and {causes}.issubset(complements):
         return 0
     else:
         return 1
 
 
 def simple_with_interaction(complements):
-    if ("A" not in complements) and ("B" not in complements):
+    if ("A115" not in complements) and ("B655" not in complements):
         return sum(contrib_dict.values()) - sum(contrib_dict[k] for k in complements) + 87
 
     return sum(contrib_dict.values()) - sum(contrib_dict[k] for k in complements)
 
 
 # ------------------------------#
-elements = ['a', 'b', 'c']
-cause = 'a'
+elements = ['A115', 'b', 'c']
+cause = 'A115'
 shapley_table = msa.interface(
     elements=elements,
     n_permutations=300,
@@ -30,7 +30,7 @@ shapley_table = msa.interface(
     objective_function_params={'causes': cause},
     random_seed=111)
 
-contrib_dict = {"A": 10, "B": 9, "C": 57, "D": -8, "E": 42}
+contrib_dict = {"A115": 10, "B655": 9, "C": 57, "D": -8, "E": 42}
 
 # ------------------------------#
 
@@ -44,7 +44,7 @@ def test_min():
 
 
 def test_cause():
-    assert shapley_table['a'].mean() == 1
+    assert shapley_table['A115'].mean() == 1
 
 
 def test_others():
@@ -57,15 +57,16 @@ def test_d_index():
         shapley_vector=shapley_table.mean()) == 0
 
 
-@pytest.mark.parametrize("n_parallel_games, multiprocessing_method", [(1, 'joblib'), (-1, 'joblib')])
-def test_interaction_2d(n_parallel_games, multiprocessing_method):
+@pytest.mark.parametrize("n_parallel_games, multiprocessing_method, lazy", [(1, 'joblib', True), (-1, 'joblib', True), (1, 'joblib', False), (-1, 'joblib', False)])
+def test_interaction_2d(n_parallel_games, multiprocessing_method, lazy):
     interactions = msa.network_interaction_2d(
         elements=list(contrib_dict.keys()),
         n_permutations=1000,
         objective_function=simple_with_interaction,
         n_parallel_games=n_parallel_games,
         multiprocessing_method=multiprocessing_method,
-        random_seed=111)
+        random_seed=111,
+        lazy=lazy)
 
     expected_interactions = np.array([[0, 87, 0, 0, 0], [87, 0, 0, 0, 0],
                                       [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]])

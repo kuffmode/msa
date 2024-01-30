@@ -133,7 +133,7 @@ def make_combination_space(*, permutation_space: list, pair: Optional[Tuple] = N
     _check_valid_permutation_space(permutation_space)
 
     # if we have an element that needs to be lesioned in every combination, then we store it in a set so that taking a difference becomes easier and efficient
-    lesioned = set(lesioned) if lesioned else set()
+    lesioned = {lesioned} if lesioned else set()
 
     combination_space = OrderedSet()
 
@@ -398,7 +398,7 @@ def get_shapley_table(*,
     contribution_type, arbitrary_contrib = _get_contribution_type(contributions)
     contrib_shape = arbitrary_contrib.shape if contribution_type == "nd" else []
 
-    lesioned = set(lesioned) if lesioned else set()
+    lesioned = {lesioned} if lesioned else set()
     sorted_elements = sorted(permutation_space[0])
     permutation_space = set(permutation_space)
 
@@ -419,16 +419,16 @@ def get_shapley_table(*,
             enumerate(permutation), total=len(permutation), leave=False, parent=parent_bar)
         # iterate over all elements in the permutation to calculate their isolated contributions
         for index, element in child_bar:
-            including = frozenset(permutation[:index + 1]) - lesioned
-            excluding = frozenset(permutation[:index]) - lesioned
+            including = frozenset(permutation[:index + 1])
+            excluding = frozenset(permutation[:index])
 
             # the isolated contribution of an element is the difference of contribution with that element and without that element
             if lazy:
-                contributions_including = objective_function(tuple(excluding), **objective_function_params)
-                contributions_excluding = objective_function(tuple(including), **objective_function_params)
+                contributions_including = objective_function(tuple(excluding.union(lesioned)), **objective_function_params)
+                contributions_excluding = objective_function(tuple(including.union(lesioned)), **objective_function_params)
                 isolated_contributions[sorted_elements.index(element)] = contributions_including - contributions_excluding
             else:
-                isolated_contributions[sorted_elements.index(element)] =  contributions[including] - contributions[excluding]
+                isolated_contributions[sorted_elements.index(element)] =  contributions[including - lesioned] - contributions[excluding - lesioned]
 
         if contribution_type == 'nd' and not save_permutations:
             shapley_table += (isolated_contributions - shapley_table) / (i + 1)
@@ -631,6 +631,7 @@ def interaction_2d(*,
                    rng: Optional[np.random.Generator] = None,
                    random_seed: Optional[int] = None,
                    n_parallel_games: int = -1,
+                   lazy: bool = False,
                    ) -> Tuple:
     """Performs Two dimensional MSA as explain in section 2.3 of [1]. 
     We calculate the Shapley value of element i in the subgame of all elements without element j. 
@@ -719,22 +720,22 @@ def interaction_2d(*,
                       "random_seed": random_seed,
                       "n_parallel_games": n_parallel_games,
                       "save_permutations": False,
-                      "lazy": False}
+                      "lazy": lazy}
 
     # calculate the shapley values with element j lesioned
     shapley_i = interface(**interface_args, lesioned=pair[1])
     # get the shapley value of element i with element j leasioned
-    gamma_i = _get_gamma(shapley_i, pair[0]).sum()
+    gamma_i = _get_gamma(shapley_i, [pair[0]]).sum()
 
     # calculate the shapley values with element i lesioned
     shapley_j = interface(**interface_args, lesioned=pair[0])
     # get the shapley value of element j with element i leasioned
-    gamma_j = _get_gamma(shapley_j, pair[1]).sum()
+    gamma_j = _get_gamma(shapley_j, [pair[1]]).sum()
 
     # calculate the shapley values with element i and j together in every combination
     shapley_ij = interface(**interface_args, pair=pair)
     # get the sum of the shapley value of element i and j
-    gamma_ij = _get_gamma(shapley_ij, pair).sum()
+    gamma_ij = _get_gamma(shapley_ij, list(pair)).sum()
 
     return gamma_ij, gamma_i, gamma_j
 
@@ -750,6 +751,7 @@ def network_interaction_2d(*,
                            rng: Optional[np.random.Generator] = None,
                            random_seed: Optional[int] = None,
                            n_parallel_games: int = -1,
+                           lazy: bool = False
                            ) -> np.ndarray:
     """Performs Two dimensional MSA as explain in section 2.3 of [1]
     for every possible pair of elements and returns a symmetric matrix of
@@ -838,7 +840,8 @@ contributions_excluding
                       "multiprocessing_method": multiprocessing_method,
                       "rng": rng,
                       "random_seed": random_seed,
-                      "n_parallel_games": n_parallel_games}
+                      "n_parallel_games": n_parallel_games,
+                      "lazy": lazy}
 
     interactions = np.zeros((len(elements), len(elements)))
 
@@ -865,9 +868,9 @@ def _get_gamma(shapley, idx):
         shapley value of elements in idx
     """
     if isinstance(shapley, ShapleyTable):
-        gamma = shapley.shapley_values[list(idx)]
+        gamma = shapley.shapley_values[idx]
     elif isinstance(shapley, ShapleyTableND):
-        gamma = shapley[list(idx)]
+        gamma = shapley[idx]
     return gamma
 
 
