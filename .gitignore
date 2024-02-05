@@ -6,3 +6,5 @@
 /msapy.egg-info/
 docs/examples/.ipynb_checkpoints/
 docs/examples/data
+celebA
+*.pyc
