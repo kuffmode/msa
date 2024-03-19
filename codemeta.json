@@ -34,8 +34,8 @@
         "MacOs"
     ],
     "softwareRequirements": [
-        "Python 3.8",
-        "https://github.com/kuffmode/msa/blob/main/requirements.txt"
+        "Python 3.9",
+        "https://github.com/kuffmode/msa/blob/main/pyproject.toml"
     ],
     "relatedLink": [
         "https://kuffmode.github.io/msa/"
