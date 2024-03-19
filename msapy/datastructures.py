@@ -1,9 +1,5 @@
-from functools import cached_property
 from typing import Optional
-from msapy import utils as ut, plottings as pl
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 
 # TODO: Update Code To Use Custom Accessors Instead: https://pandas.pydata.org/docs/development/extending.html#registering-custom-accessors
 
@@ -20,22 +16,6 @@ class ShapleyTable(pd.DataFrame):
     @property
     def shapley_values(self):
         return self.mean()
-
-    def plot_shapley_ranks(self, dpi=100, xlabel="", ylabel="", title="", savepath=None):
-        # sorting based on the average contribution (Shapley values)
-        shapley_table = ut.sorter(self)
-
-        fig, ax = plt.subplots()
-        colors = pl.color_code(shapley_table=shapley_table)
-        pl.plot_shapley_ranks(shapley_table=shapley_table,
-                              colors=colors, ax=ax)
-        fig.set_dpi(dpi)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.title(title)
-
-        if savepath:
-            plt.savefig(savepath, dpi=dpi, bbox_inches='tight')
 
 
 class ShapleyTableND(pd.DataFrame):
@@ -72,6 +52,10 @@ class ShapleyTableND(pd.DataFrame):
     @property
     def shapley_modes(self):
         return ShapleyModeND(self.groupby(level=1).mean(), self._shape)
+    
+    @property
+    def _constructor_sliced(self):
+        return pd.Series
 
 
 class ShapleyModeND(pd.DataFrame):
