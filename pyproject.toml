@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "msapy"
-version = "1.7"
+version = "1.7.1"
 description = "Multi-perturbation Shapley value Analysis (MSA)"
 homepage = "https://github.com/kuffmode/msa"
 repository = "https://github.com/kuffmode/msa"
