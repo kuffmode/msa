@@ -1,0 +1,1609 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A compact and general-purpose Python package for Multiperturbation Shapley value Analysis (MSA).">
+      
+      
+        <meta name="author" content="Kayson Fakhar">
+      
+      
+      
+        <link rel="prev" href="get_shapley_table.html">
+      
+      
+        <link rel="next" href="make_combination_space.html">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.27">
+    
+    
+      
+        <title>Interface - MSA (Multi-perturbation Shapley value Analysis)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#msapy.msa.interface" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="MSA (Multi-perturbation Shapley value Analysis)" class="md-header__button md-logo" aria-label="MSA (Multi-perturbation Shapley value Analysis)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MSA (Multi-perturbation Shapley value Analysis)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Interface
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/kuffmode/msa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="MSA (Multi-perturbation Shapley value Analysis)" class="md-nav__button md-logo" aria-label="MSA (Multi-perturbation Shapley value Analysis)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    MSA (Multi-perturbation Shapley value Analysis)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/kuffmode/msa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Getting%20Started.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="estimate_causal_influences.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Estimate causal influences
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="get_shapley_table.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Get shapley table
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Interface
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="interface.html" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Interface
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#msapy.msa.interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      interface
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_combination_space.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Make combination space
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_complement_space.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Make complement space
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_permutation_space.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Make permutation space
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="network_interaction_2d.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Network interaction 2d
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="take_contributions.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Take contributions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Utils
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Utils
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/bootstrap_hypothesis_testing.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Bootstrap hypothesis testing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/distribution_of_processing.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distribution of processing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/parallelized_take_contributions.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Parallelized take contributions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/sorter.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sorter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/MSA%20TimeSeries.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    MSA TimeSeries
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Shapley%20GAN.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Work In Progress
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/brain%20modes.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Capturing contributions in different 'brain modes'
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/minimal.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Minimal examples of how to use MSA
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/mnist_torch.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mnist torch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/on%20ground-truth%20models.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Working with groundtruth models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/shapley%20analysis.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Work In Progress
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#msapy.msa.interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      interface
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Interface</h1>
+
+<div class="doc doc-object doc-function">
+
+
+
+<a id="msapy.msa.interface"></a>
+    <div class="doc doc-contents first">
+
+      <p>A wrapper function to call other related functions internally and produces an easy-to-use pipeline.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>n_permutations</code></td>
+            <td>
+                  <code>int</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of permutations (samples) per element.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>elements</code></td>
+            <td>
+                  <code>list</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of the players (elements). Can be strings (names), integers (indicies), and tuples.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>objective_function</code></td>
+            <td>
+                  <code><span title="typing.Callable">Callable</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The game (in-silico experiment). It should get the complement set and return one numeric value
+either int or float.
+This function is just calling it as: objective_function(complement, **objective_function_params)</p>
+<p>An example using networkx with some tips:
+(you sometimes need to specify what should happen during edge-cases like an all-lesioned network)</p>
+<p>def local_efficiency(complements, graph):
+    if len(complements) &lt; 0:
+        # the network is intact so:
+        return nx.local_efficiency(graph)</p>
+<div class="highlight"><pre><span></span><code>elif len(complements) == len(graph):
+    # the network is fully lesioned so:
+    return 0.0
+
+else:
+    # lesion the system, calculate things
+    lesioned = graph.copy()
+    lesioned.remove_nodes_from(complements)
+    return nx.local_efficiency(lesioned)
+</code></pre></div>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>objective_function_params</code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Kwargs for the objective_function.</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>permutation_space</code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[list]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Already generated permutation space, in case you want to be more reproducible or something and use the same
+lesion combinations for many metrics.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>pair</code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="typing.Tuple">Tuple</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>pair of elements that will always be together in every combination</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>lesioned</code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[any]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>leseioned element that will not be present in any combination</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>multiprocessing_method</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+documentations to see how to go for it. I guess ray works better on HPC clusters (if they support it tho!)
+and probably doesn't suffer from the sneaky "memory leakage" of joblib. But just by playing around,
+I realized joblib is faster for tasks that are small themselves. Remedies are here:
+https://docs.ray.io/en/latest/auto_examples/tips-for-first-time.html</p>
+<p>Note: Generally, multiprocessing isn't always faster as explained above. Use it when the function itself
+takes some like each game takes longer than 0.5 seconds or so. For example, a function that sleeps for a
+second on a set of 10 elements with 1000 permutations each (1024 games) performs as follows:</p>
+<div class="highlight"><pre><span></span><code>- no parallel: 1020 sec
+- joblib: 63 sec
+- ray: 65 sec
+</code></pre></div>
+<p>That makes sense since I have 16 cores and 1000/16 is around 62.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;joblib&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>rng</code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="numpy.random.Generator">Generator</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Numpy random generator object used for reproducable results. Default is None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>random_seed</code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[int]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>sets the random seed of the sampling process. Only used when <code>rng</code> is None. Default is None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>n_parallel_games</code></td>
+            <td>
+                  <code>int</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of parallel jobs (number of to-be-occupied cores),
+-1 means all CPU cores and 1 means a serial process.
+I suggest using 1 for debugging since things get messy in parallel!</p>
+              </div>
+            </td>
+            <td>
+                  <code>-1</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>lazy</code></td>
+            <td>
+                  <code>bool</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>if set to True, objective function will be called lazily instead of calling it all at once and storing the outputs in a dict.
+Setting it to True saves a lot of memory and might even be faster in certain cases.</p>
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>save_permutations</code></td>
+            <td>
+                  <code>bool</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If set to True, the shapley values are calculated by calculating the running mean of the permutations instead of
+storing the permutations. This parameter is ignored in case the objective function returns a scaler.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>dual_progress_bar</code></td>
+            <td>
+                  <code>bool</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If set to true, you will have two progress bars. One parent that will track the permutations, other child that
+will track the elements. Its ignored in case the mbar is provided</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>mbar</code></td>
+            <td>
+                  <code><span title="fastprogress.fastprogress.MasterBar">MasterBar</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A Fastprogress MasterBar. Use it in case you're calling the interface multiple times to have a nester progress bar.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tuple[pd.DataFrame, Dict, Dict]: shapley_table, contributions, lesion_effects</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+      <p>Note that contributions and lesion_effects are the same values, addressed differently. For example:
+If from a set of ABCD removing AC ends with some value x, you can say the contribution of BD=x and the
+effect of removing AC=x. So the same values are addressed differently in the two returned Dicts.
+Of course, it makes more sense to compare the lesion effects with the intact system but who am I to judge.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>msapy/msa.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-454">454</a></span>
+<span class="normal"><a href="#__codelineno-0-455">455</a></span>
+<span class="normal"><a href="#__codelineno-0-456">456</a></span>
+<span class="normal"><a href="#__codelineno-0-457">457</a></span>
+<span class="normal"><a href="#__codelineno-0-458">458</a></span>
+<span class="normal"><a href="#__codelineno-0-459">459</a></span>
+<span class="normal"><a href="#__codelineno-0-460">460</a></span>
+<span class="normal"><a href="#__codelineno-0-461">461</a></span>
+<span class="normal"><a href="#__codelineno-0-462">462</a></span>
+<span class="normal"><a href="#__codelineno-0-463">463</a></span>
+<span class="normal"><a href="#__codelineno-0-464">464</a></span>
+<span class="normal"><a href="#__codelineno-0-465">465</a></span>
+<span class="normal"><a href="#__codelineno-0-466">466</a></span>
+<span class="normal"><a href="#__codelineno-0-467">467</a></span>
+<span class="normal"><a href="#__codelineno-0-468">468</a></span>
+<span class="normal"><a href="#__codelineno-0-469">469</a></span>
+<span class="normal"><a href="#__codelineno-0-470">470</a></span>
+<span class="normal"><a href="#__codelineno-0-471">471</a></span>
+<span class="normal"><a href="#__codelineno-0-472">472</a></span>
+<span class="normal"><a href="#__codelineno-0-473">473</a></span>
+<span class="normal"><a href="#__codelineno-0-474">474</a></span>
+<span class="normal"><a href="#__codelineno-0-475">475</a></span>
+<span class="normal"><a href="#__codelineno-0-476">476</a></span>
+<span class="normal"><a href="#__codelineno-0-477">477</a></span>
+<span class="normal"><a href="#__codelineno-0-478">478</a></span>
+<span class="normal"><a href="#__codelineno-0-479">479</a></span>
+<span class="normal"><a href="#__codelineno-0-480">480</a></span>
+<span class="normal"><a href="#__codelineno-0-481">481</a></span>
+<span class="normal"><a href="#__codelineno-0-482">482</a></span>
+<span class="normal"><a href="#__codelineno-0-483">483</a></span>
+<span class="normal"><a href="#__codelineno-0-484">484</a></span>
+<span class="normal"><a href="#__codelineno-0-485">485</a></span>
+<span class="normal"><a href="#__codelineno-0-486">486</a></span>
+<span class="normal"><a href="#__codelineno-0-487">487</a></span>
+<span class="normal"><a href="#__codelineno-0-488">488</a></span>
+<span class="normal"><a href="#__codelineno-0-489">489</a></span>
+<span class="normal"><a href="#__codelineno-0-490">490</a></span>
+<span class="normal"><a href="#__codelineno-0-491">491</a></span>
+<span class="normal"><a href="#__codelineno-0-492">492</a></span>
+<span class="normal"><a href="#__codelineno-0-493">493</a></span>
+<span class="normal"><a href="#__codelineno-0-494">494</a></span>
+<span class="normal"><a href="#__codelineno-0-495">495</a></span>
+<span class="normal"><a href="#__codelineno-0-496">496</a></span>
+<span class="normal"><a href="#__codelineno-0-497">497</a></span>
+<span class="normal"><a href="#__codelineno-0-498">498</a></span>
+<span class="normal"><a href="#__codelineno-0-499">499</a></span>
+<span class="normal"><a href="#__codelineno-0-500">500</a></span>
+<span class="normal"><a href="#__codelineno-0-501">501</a></span>
+<span class="normal"><a href="#__codelineno-0-502">502</a></span>
+<span class="normal"><a href="#__codelineno-0-503">503</a></span>
+<span class="normal"><a href="#__codelineno-0-504">504</a></span>
+<span class="normal"><a href="#__codelineno-0-505">505</a></span>
+<span class="normal"><a href="#__codelineno-0-506">506</a></span>
+<span class="normal"><a href="#__codelineno-0-507">507</a></span>
+<span class="normal"><a href="#__codelineno-0-508">508</a></span>
+<span class="normal"><a href="#__codelineno-0-509">509</a></span>
+<span class="normal"><a href="#__codelineno-0-510">510</a></span>
+<span class="normal"><a href="#__codelineno-0-511">511</a></span>
+<span class="normal"><a href="#__codelineno-0-512">512</a></span>
+<span class="normal"><a href="#__codelineno-0-513">513</a></span>
+<span class="normal"><a href="#__codelineno-0-514">514</a></span>
+<span class="normal"><a href="#__codelineno-0-515">515</a></span>
+<span class="normal"><a href="#__codelineno-0-516">516</a></span>
+<span class="normal"><a href="#__codelineno-0-517">517</a></span>
+<span class="normal"><a href="#__codelineno-0-518">518</a></span>
+<span class="normal"><a href="#__codelineno-0-519">519</a></span>
+<span class="normal"><a href="#__codelineno-0-520">520</a></span>
+<span class="normal"><a href="#__codelineno-0-521">521</a></span>
+<span class="normal"><a href="#__codelineno-0-522">522</a></span>
+<span class="normal"><a href="#__codelineno-0-523">523</a></span>
+<span class="normal"><a href="#__codelineno-0-524">524</a></span>
+<span class="normal"><a href="#__codelineno-0-525">525</a></span>
+<span class="normal"><a href="#__codelineno-0-526">526</a></span>
+<span class="normal"><a href="#__codelineno-0-527">527</a></span>
+<span class="normal"><a href="#__codelineno-0-528">528</a></span>
+<span class="normal"><a href="#__codelineno-0-529">529</a></span>
+<span class="normal"><a href="#__codelineno-0-530">530</a></span>
+<span class="normal"><a href="#__codelineno-0-531">531</a></span>
+<span class="normal"><a href="#__codelineno-0-532">532</a></span>
+<span class="normal"><a href="#__codelineno-0-533">533</a></span>
+<span class="normal"><a href="#__codelineno-0-534">534</a></span>
+<span class="normal"><a href="#__codelineno-0-535">535</a></span>
+<span class="normal"><a href="#__codelineno-0-536">536</a></span>
+<span class="normal"><a href="#__codelineno-0-537">537</a></span>
+<span class="normal"><a href="#__codelineno-0-538">538</a></span>
+<span class="normal"><a href="#__codelineno-0-539">539</a></span>
+<span class="normal"><a href="#__codelineno-0-540">540</a></span>
+<span class="normal"><a href="#__codelineno-0-541">541</a></span>
+<span class="normal"><a href="#__codelineno-0-542">542</a></span>
+<span class="normal"><a href="#__codelineno-0-543">543</a></span>
+<span class="normal"><a href="#__codelineno-0-544">544</a></span>
+<span class="normal"><a href="#__codelineno-0-545">545</a></span>
+<span class="normal"><a href="#__codelineno-0-546">546</a></span>
+<span class="normal"><a href="#__codelineno-0-547">547</a></span>
+<span class="normal"><a href="#__codelineno-0-548">548</a></span>
+<span class="normal"><a href="#__codelineno-0-549">549</a></span>
+<span class="normal"><a href="#__codelineno-0-550">550</a></span>
+<span class="normal"><a href="#__codelineno-0-551">551</a></span>
+<span class="normal"><a href="#__codelineno-0-552">552</a></span>
+<span class="normal"><a href="#__codelineno-0-553">553</a></span>
+<span class="normal"><a href="#__codelineno-0-554">554</a></span>
+<span class="normal"><a href="#__codelineno-0-555">555</a></span>
+<span class="normal"><a href="#__codelineno-0-556">556</a></span>
+<span class="normal"><a href="#__codelineno-0-557">557</a></span>
+<span class="normal"><a href="#__codelineno-0-558">558</a></span>
+<span class="normal"><a href="#__codelineno-0-559">559</a></span>
+<span class="normal"><a href="#__codelineno-0-560">560</a></span>
+<span class="normal"><a href="#__codelineno-0-561">561</a></span>
+<span class="normal"><a href="#__codelineno-0-562">562</a></span>
+<span class="normal"><a href="#__codelineno-0-563">563</a></span>
+<span class="normal"><a href="#__codelineno-0-564">564</a></span>
+<span class="normal"><a href="#__codelineno-0-565">565</a></span>
+<span class="normal"><a href="#__codelineno-0-566">566</a></span>
+<span class="normal"><a href="#__codelineno-0-567">567</a></span>
+<span class="normal"><a href="#__codelineno-0-568">568</a></span>
+<span class="normal"><a href="#__codelineno-0-569">569</a></span>
+<span class="normal"><a href="#__codelineno-0-570">570</a></span>
+<span class="normal"><a href="#__codelineno-0-571">571</a></span>
+<span class="normal"><a href="#__codelineno-0-572">572</a></span>
+<span class="normal"><a href="#__codelineno-0-573">573</a></span>
+<span class="normal"><a href="#__codelineno-0-574">574</a></span>
+<span class="normal"><a href="#__codelineno-0-575">575</a></span>
+<span class="normal"><a href="#__codelineno-0-576">576</a></span>
+<span class="normal"><a href="#__codelineno-0-577">577</a></span>
+<span class="normal"><a href="#__codelineno-0-578">578</a></span>
+<span class="normal"><a href="#__codelineno-0-579">579</a></span>
+<span class="normal"><a href="#__codelineno-0-580">580</a></span>
+<span class="normal"><a href="#__codelineno-0-581">581</a></span>
+<span class="normal"><a href="#__codelineno-0-582">582</a></span>
+<span class="normal"><a href="#__codelineno-0-583">583</a></span>
+<span class="normal"><a href="#__codelineno-0-584">584</a></span>
+<span class="normal"><a href="#__codelineno-0-585">585</a></span>
+<span class="normal"><a href="#__codelineno-0-586">586</a></span>
+<span class="normal"><a href="#__codelineno-0-587">587</a></span>
+<span class="normal"><a href="#__codelineno-0-588">588</a></span>
+<span class="normal"><a href="#__codelineno-0-589">589</a></span>
+<span class="normal"><a href="#__codelineno-0-590">590</a></span>
+<span class="normal"><a href="#__codelineno-0-591">591</a></span>
+<span class="normal"><a href="#__codelineno-0-592">592</a></span>
+<span class="normal"><a href="#__codelineno-0-593">593</a></span>
+<span class="normal"><a href="#__codelineno-0-594">594</a></span>
+<span class="normal"><a href="#__codelineno-0-595">595</a></span>
+<span class="normal"><a href="#__codelineno-0-596">596</a></span>
+<span class="normal"><a href="#__codelineno-0-597">597</a></span>
+<span class="normal"><a href="#__codelineno-0-598">598</a></span>
+<span class="normal"><a href="#__codelineno-0-599">599</a></span>
+<span class="normal"><a href="#__codelineno-0-600">600</a></span>
+<span class="normal"><a href="#__codelineno-0-601">601</a></span>
+<span class="normal"><a href="#__codelineno-0-602">602</a></span>
+<span class="normal"><a href="#__codelineno-0-603">603</a></span>
+<span class="normal"><a href="#__codelineno-0-604">604</a></span>
+<span class="normal"><a href="#__codelineno-0-605">605</a></span>
+<span class="normal"><a href="#__codelineno-0-606">606</a></span>
+<span class="normal"><a href="#__codelineno-0-607">607</a></span>
+<span class="normal"><a href="#__codelineno-0-608">608</a></span>
+<span class="normal"><a href="#__codelineno-0-609">609</a></span>
+<span class="normal"><a href="#__codelineno-0-610">610</a></span>
+<span class="normal"><a href="#__codelineno-0-611">611</a></span>
+<span class="normal"><a href="#__codelineno-0-612">612</a></span>
+<span class="normal"><a href="#__codelineno-0-613">613</a></span>
+<span class="normal"><a href="#__codelineno-0-614">614</a></span>
+<span class="normal"><a href="#__codelineno-0-615">615</a></span>
+<span class="normal"><a href="#__codelineno-0-616">616</a></span>
+<span class="normal"><a href="#__codelineno-0-617">617</a></span>
+<span class="normal"><a href="#__codelineno-0-618">618</a></span>
+<span class="normal"><a href="#__codelineno-0-619">619</a></span>
+<span class="normal"><a href="#__codelineno-0-620">620</a></span>
+<span class="normal"><a href="#__codelineno-0-621">621</a></span>
+<span class="normal"><a href="#__codelineno-0-622">622</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-454" name="__codelineno-0-454"></a><span class="nd">@typechecked</span>
+<a id="__codelineno-0-455" name="__codelineno-0-455"></a><span class="k">def</span> <span class="nf">interface</span><span class="p">(</span><span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-0-456" name="__codelineno-0-456"></a>              <span class="n">n_permutations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-0-457" name="__codelineno-0-457"></a>              <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+<a id="__codelineno-0-458" name="__codelineno-0-458"></a>              <span class="n">objective_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+<a id="__codelineno-0-459" name="__codelineno-0-459"></a>              <span class="n">objective_function_params</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{},</span>
+<a id="__codelineno-0-460" name="__codelineno-0-460"></a>              <span class="n">permutation_space</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-461" name="__codelineno-0-461"></a>              <span class="n">pair</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-462" name="__codelineno-0-462"></a>              <span class="n">lesioned</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-463" name="__codelineno-0-463"></a>              <span class="n">multiprocessing_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;joblib&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-464" name="__codelineno-0-464"></a>              <span class="n">rng</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-465" name="__codelineno-0-465"></a>              <span class="n">random_seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-466" name="__codelineno-0-466"></a>              <span class="n">n_parallel_games</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-0-467" name="__codelineno-0-467"></a>              <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-468" name="__codelineno-0-468"></a>              <span class="n">save_permutations</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-469" name="__codelineno-0-469"></a>              <span class="n">dual_progress_bars</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-470" name="__codelineno-0-470"></a>              <span class="n">mbar</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MasterBar</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-471" name="__codelineno-0-471"></a>              <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<a id="__codelineno-0-472" name="__codelineno-0-472"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-473" name="__codelineno-0-473"></a><span class="sd">    A wrapper function to call other related functions internally and produces an easy-to-use pipeline.</span>
+<a id="__codelineno-0-474" name="__codelineno-0-474"></a>
+<a id="__codelineno-0-475" name="__codelineno-0-475"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-476" name="__codelineno-0-476"></a><span class="sd">        n_permutations (int):</span>
+<a id="__codelineno-0-477" name="__codelineno-0-477"></a><span class="sd">            Number of permutations (samples) per element.</span>
+<a id="__codelineno-0-478" name="__codelineno-0-478"></a>
+<a id="__codelineno-0-479" name="__codelineno-0-479"></a><span class="sd">        elements (list):</span>
+<a id="__codelineno-0-480" name="__codelineno-0-480"></a><span class="sd">            List of the players (elements). Can be strings (names), integers (indicies), and tuples.</span>
+<a id="__codelineno-0-481" name="__codelineno-0-481"></a>
+<a id="__codelineno-0-482" name="__codelineno-0-482"></a><span class="sd">        objective_function (Callable):</span>
+<a id="__codelineno-0-483" name="__codelineno-0-483"></a><span class="sd">            The game (in-silico experiment). It should get the complement set and return one numeric value</span>
+<a id="__codelineno-0-484" name="__codelineno-0-484"></a><span class="sd">            either int or float.</span>
+<a id="__codelineno-0-485" name="__codelineno-0-485"></a><span class="sd">            This function is just calling it as: objective_function(complement, **objective_function_params)</span>
+<a id="__codelineno-0-486" name="__codelineno-0-486"></a>
+<a id="__codelineno-0-487" name="__codelineno-0-487"></a><span class="sd">            An example using networkx with some tips:</span>
+<a id="__codelineno-0-488" name="__codelineno-0-488"></a><span class="sd">            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)</span>
+<a id="__codelineno-0-489" name="__codelineno-0-489"></a>
+<a id="__codelineno-0-490" name="__codelineno-0-490"></a><span class="sd">            def local_efficiency(complements, graph):</span>
+<a id="__codelineno-0-491" name="__codelineno-0-491"></a><span class="sd">                if len(complements) &lt; 0:</span>
+<a id="__codelineno-0-492" name="__codelineno-0-492"></a><span class="sd">                    # the network is intact so:</span>
+<a id="__codelineno-0-493" name="__codelineno-0-493"></a><span class="sd">                    return nx.local_efficiency(graph)</span>
+<a id="__codelineno-0-494" name="__codelineno-0-494"></a>
+<a id="__codelineno-0-495" name="__codelineno-0-495"></a><span class="sd">                elif len(complements) == len(graph):</span>
+<a id="__codelineno-0-496" name="__codelineno-0-496"></a><span class="sd">                    # the network is fully lesioned so:</span>
+<a id="__codelineno-0-497" name="__codelineno-0-497"></a><span class="sd">                    return 0.0</span>
+<a id="__codelineno-0-498" name="__codelineno-0-498"></a>
+<a id="__codelineno-0-499" name="__codelineno-0-499"></a><span class="sd">                else:</span>
+<a id="__codelineno-0-500" name="__codelineno-0-500"></a><span class="sd">                    # lesion the system, calculate things</span>
+<a id="__codelineno-0-501" name="__codelineno-0-501"></a><span class="sd">                    lesioned = graph.copy()</span>
+<a id="__codelineno-0-502" name="__codelineno-0-502"></a><span class="sd">                    lesioned.remove_nodes_from(complements)</span>
+<a id="__codelineno-0-503" name="__codelineno-0-503"></a><span class="sd">                    return nx.local_efficiency(lesioned)</span>
+<a id="__codelineno-0-504" name="__codelineno-0-504"></a>
+<a id="__codelineno-0-505" name="__codelineno-0-505"></a><span class="sd">        objective_function_params (Dict):</span>
+<a id="__codelineno-0-506" name="__codelineno-0-506"></a><span class="sd">            Kwargs for the objective_function.</span>
+<a id="__codelineno-0-507" name="__codelineno-0-507"></a>
+<a id="__codelineno-0-508" name="__codelineno-0-508"></a><span class="sd">        permutation_space (Optional[list]):</span>
+<a id="__codelineno-0-509" name="__codelineno-0-509"></a><span class="sd">            Already generated permutation space, in case you want to be more reproducible or something and use the same</span>
+<a id="__codelineno-0-510" name="__codelineno-0-510"></a><span class="sd">            lesion combinations for many metrics.</span>
+<a id="__codelineno-0-511" name="__codelineno-0-511"></a>
+<a id="__codelineno-0-512" name="__codelineno-0-512"></a><span class="sd">        pair (Optional[Tuple]):</span>
+<a id="__codelineno-0-513" name="__codelineno-0-513"></a><span class="sd">            pair of elements that will always be together in every combination</span>
+<a id="__codelineno-0-514" name="__codelineno-0-514"></a>
+<a id="__codelineno-0-515" name="__codelineno-0-515"></a><span class="sd">        lesioned (Optional[any]):</span>
+<a id="__codelineno-0-516" name="__codelineno-0-516"></a><span class="sd">            leseioned element that will not be present in any combination</span>
+<a id="__codelineno-0-517" name="__codelineno-0-517"></a>
+<a id="__codelineno-0-518" name="__codelineno-0-518"></a><span class="sd">        multiprocessing_method (str):</span>
+<a id="__codelineno-0-519" name="__codelineno-0-519"></a><span class="sd">            So far, two methods of parallelization is implemented, &#39;joblib&#39; and &#39;ray&#39; and the default method is joblib.</span>
+<a id="__codelineno-0-520" name="__codelineno-0-520"></a><span class="sd">            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their</span>
+<a id="__codelineno-0-521" name="__codelineno-0-521"></a><span class="sd">            documentations to see how to go for it. I guess ray works better on HPC clusters (if they support it tho!)</span>
+<a id="__codelineno-0-522" name="__codelineno-0-522"></a><span class="sd">            and probably doesn&#39;t suffer from the sneaky &quot;memory leakage&quot; of joblib. But just by playing around,</span>
+<a id="__codelineno-0-523" name="__codelineno-0-523"></a><span class="sd">            I realized joblib is faster for tasks that are small themselves. Remedies are here:</span>
+<a id="__codelineno-0-524" name="__codelineno-0-524"></a><span class="sd">            https://docs.ray.io/en/latest/auto_examples/tips-for-first-time.html</span>
+<a id="__codelineno-0-525" name="__codelineno-0-525"></a>
+<a id="__codelineno-0-526" name="__codelineno-0-526"></a><span class="sd">            Note: Generally, multiprocessing isn&#39;t always faster as explained above. Use it when the function itself</span>
+<a id="__codelineno-0-527" name="__codelineno-0-527"></a><span class="sd">            takes some like each game takes longer than 0.5 seconds or so. For example, a function that sleeps for a</span>
+<a id="__codelineno-0-528" name="__codelineno-0-528"></a><span class="sd">            second on a set of 10 elements with 1000 permutations each (1024 games) performs as follows:</span>
+<a id="__codelineno-0-529" name="__codelineno-0-529"></a>
+<a id="__codelineno-0-530" name="__codelineno-0-530"></a><span class="sd">                - no parallel: 1020 sec</span>
+<a id="__codelineno-0-531" name="__codelineno-0-531"></a><span class="sd">                - joblib: 63 sec</span>
+<a id="__codelineno-0-532" name="__codelineno-0-532"></a><span class="sd">                - ray: 65 sec</span>
+<a id="__codelineno-0-533" name="__codelineno-0-533"></a>
+<a id="__codelineno-0-534" name="__codelineno-0-534"></a><span class="sd">            That makes sense since I have 16 cores and 1000/16 is around 62.</span>
+<a id="__codelineno-0-535" name="__codelineno-0-535"></a>
+<a id="__codelineno-0-536" name="__codelineno-0-536"></a><span class="sd">        rng (Optional[np.random.Generator]): Numpy random generator object used for reproducable results. Default is None.</span>
+<a id="__codelineno-0-537" name="__codelineno-0-537"></a>
+<a id="__codelineno-0-538" name="__codelineno-0-538"></a><span class="sd">        random_seed (Optional[int]):</span>
+<a id="__codelineno-0-539" name="__codelineno-0-539"></a><span class="sd">            sets the random seed of the sampling process. Only used when `rng` is None. Default is None.</span>
+<a id="__codelineno-0-540" name="__codelineno-0-540"></a>
+<a id="__codelineno-0-541" name="__codelineno-0-541"></a><span class="sd">        n_parallel_games (int):</span>
+<a id="__codelineno-0-542" name="__codelineno-0-542"></a><span class="sd">            Number of parallel jobs (number of to-be-occupied cores),</span>
+<a id="__codelineno-0-543" name="__codelineno-0-543"></a><span class="sd">            -1 means all CPU cores and 1 means a serial process.</span>
+<a id="__codelineno-0-544" name="__codelineno-0-544"></a><span class="sd">            I suggest using 1 for debugging since things get messy in parallel!</span>
+<a id="__codelineno-0-545" name="__codelineno-0-545"></a>
+<a id="__codelineno-0-546" name="__codelineno-0-546"></a><span class="sd">        lazy (bool): if set to True, objective function will be called lazily instead of calling it all at once and storing the outputs in a dict.</span>
+<a id="__codelineno-0-547" name="__codelineno-0-547"></a><span class="sd">            Setting it to True saves a lot of memory and might even be faster in certain cases.</span>
+<a id="__codelineno-0-548" name="__codelineno-0-548"></a>
+<a id="__codelineno-0-549" name="__codelineno-0-549"></a><span class="sd">        save_permutations (bool): If set to True, the shapley values are calculated by calculating the running mean of the permutations instead of</span>
+<a id="__codelineno-0-550" name="__codelineno-0-550"></a><span class="sd">            storing the permutations. This parameter is ignored in case the objective function returns a scaler.</span>
+<a id="__codelineno-0-551" name="__codelineno-0-551"></a>
+<a id="__codelineno-0-552" name="__codelineno-0-552"></a><span class="sd">        dual_progress_bar (bool): If set to true, you will have two progress bars. One parent that will track the permutations, other child that</span>
+<a id="__codelineno-0-553" name="__codelineno-0-553"></a><span class="sd">            will track the elements. Its ignored in case the mbar is provided</span>
+<a id="__codelineno-0-554" name="__codelineno-0-554"></a>
+<a id="__codelineno-0-555" name="__codelineno-0-555"></a><span class="sd">        mbar (MasterBar): A Fastprogress MasterBar. Use it in case you&#39;re calling the interface multiple times to have a nester progress bar.</span>
+<a id="__codelineno-0-556" name="__codelineno-0-556"></a>
+<a id="__codelineno-0-557" name="__codelineno-0-557"></a>
+<a id="__codelineno-0-558" name="__codelineno-0-558"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-559" name="__codelineno-0-559"></a><span class="sd">        Tuple[pd.DataFrame, Dict, Dict]: shapley_table, contributions, lesion_effects</span>
+<a id="__codelineno-0-560" name="__codelineno-0-560"></a>
+<a id="__codelineno-0-561" name="__codelineno-0-561"></a><span class="sd">    Note that contributions and lesion_effects are the same values, addressed differently. For example:</span>
+<a id="__codelineno-0-562" name="__codelineno-0-562"></a><span class="sd">    If from a set of ABCD removing AC ends with some value x, you can say the contribution of BD=x and the</span>
+<a id="__codelineno-0-563" name="__codelineno-0-563"></a><span class="sd">    effect of removing AC=x. So the same values are addressed differently in the two returned Dicts.</span>
+<a id="__codelineno-0-564" name="__codelineno-0-564"></a><span class="sd">    Of course, it makes more sense to compare the lesion effects with the intact system but who am I to judge.</span>
+<a id="__codelineno-0-565" name="__codelineno-0-565"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-566" name="__codelineno-0-566"></a>
+<a id="__codelineno-0-567" name="__codelineno-0-567"></a>    <span class="c1"># create a numpy random number generator if one is not passed</span>
+<a id="__codelineno-0-568" name="__codelineno-0-568"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">rng</span><span class="p">:</span>
+<a id="__codelineno-0-569" name="__codelineno-0-569"></a>        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span>
+<a id="__codelineno-0-570" name="__codelineno-0-570"></a>            <span class="n">random_seed</span><span class="p">)</span> <span class="k">if</span> <span class="n">random_seed</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
+<a id="__codelineno-0-571" name="__codelineno-0-571"></a>
+<a id="__codelineno-0-572" name="__codelineno-0-572"></a>    <span class="c1"># create a permutation_space if one is not passed</span>
+<a id="__codelineno-0-573" name="__codelineno-0-573"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">permutation_space</span><span class="p">:</span>
+<a id="__codelineno-0-574" name="__codelineno-0-574"></a>        <span class="n">permutation_space</span> <span class="o">=</span> <span class="n">make_permutation_space</span><span class="p">(</span><span class="n">elements</span><span class="o">=</span><span class="n">elements</span><span class="p">,</span>
+<a id="__codelineno-0-575" name="__codelineno-0-575"></a>                                                   <span class="n">n_permutations</span><span class="o">=</span><span class="n">n_permutations</span><span class="p">,</span>
+<a id="__codelineno-0-576" name="__codelineno-0-576"></a>                                                   <span class="n">pair</span><span class="o">=</span><span class="n">pair</span><span class="p">,</span>
+<a id="__codelineno-0-577" name="__codelineno-0-577"></a>                                                   <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
+<a id="__codelineno-0-578" name="__codelineno-0-578"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-579" name="__codelineno-0-579"></a>        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;A Permutation space is given so n_permutations will fall back to what&#39;s specified there.&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-580" name="__codelineno-0-580"></a>                      <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-0-581" name="__codelineno-0-581"></a>
+<a id="__codelineno-0-582" name="__codelineno-0-582"></a>    <span class="k">if</span> <span class="n">lazy</span><span class="p">:</span>
+<a id="__codelineno-0-583" name="__codelineno-0-583"></a>        <span class="n">shapley_table</span> <span class="o">=</span> <span class="n">get_shapley_table</span><span class="p">(</span><span class="n">permutation_space</span><span class="o">=</span><span class="n">permutation_space</span><span class="p">,</span>
+<a id="__codelineno-0-584" name="__codelineno-0-584"></a>                                          <span class="n">lesioned</span><span class="o">=</span><span class="n">lesioned</span><span class="p">,</span>
+<a id="__codelineno-0-585" name="__codelineno-0-585"></a>                                          <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-586" name="__codelineno-0-586"></a>                                          <span class="n">objective_function</span><span class="o">=</span><span class="n">objective_function</span><span class="p">,</span>
+<a id="__codelineno-0-587" name="__codelineno-0-587"></a>                                          <span class="n">objective_function_params</span><span class="o">=</span><span class="n">objective_function_params</span><span class="p">,</span>
+<a id="__codelineno-0-588" name="__codelineno-0-588"></a>                                          <span class="n">dual_progress_bars</span><span class="o">=</span><span class="n">dual_progress_bars</span><span class="p">,</span>
+<a id="__codelineno-0-589" name="__codelineno-0-589"></a>                                          <span class="n">save_permutations</span><span class="o">=</span><span class="n">save_permutations</span><span class="p">,</span>
+<a id="__codelineno-0-590" name="__codelineno-0-590"></a>                                          <span class="n">mbar</span><span class="o">=</span><span class="n">mbar</span><span class="p">)[</span><span class="n">elements</span><span class="p">]</span>
+<a id="__codelineno-0-591" name="__codelineno-0-591"></a>        <span class="k">return</span> <span class="n">shapley_table</span>
+<a id="__codelineno-0-592" name="__codelineno-0-592"></a>
+<a id="__codelineno-0-593" name="__codelineno-0-593"></a>    <span class="n">combination_space</span> <span class="o">=</span> <span class="n">make_combination_space</span><span class="p">(</span><span class="n">permutation_space</span><span class="o">=</span><span class="n">permutation_space</span><span class="p">,</span>
+<a id="__codelineno-0-594" name="__codelineno-0-594"></a>                                               <span class="n">pair</span><span class="o">=</span><span class="n">pair</span><span class="p">,</span>
+<a id="__codelineno-0-595" name="__codelineno-0-595"></a>                                               <span class="n">lesioned</span><span class="o">=</span><span class="n">lesioned</span><span class="p">)</span>
+<a id="__codelineno-0-596" name="__codelineno-0-596"></a>    <span class="n">complement_space</span> <span class="o">=</span> <span class="n">make_complement_space</span><span class="p">(</span><span class="n">combination_space</span><span class="o">=</span><span class="n">combination_space</span><span class="p">,</span>
+<a id="__codelineno-0-597" name="__codelineno-0-597"></a>                                             <span class="n">elements</span><span class="o">=</span><span class="n">elements</span><span class="p">,</span>
+<a id="__codelineno-0-598" name="__codelineno-0-598"></a>                                             <span class="n">lesioned</span><span class="o">=</span><span class="n">lesioned</span><span class="p">)</span>
+<a id="__codelineno-0-599" name="__codelineno-0-599"></a>
+<a id="__codelineno-0-600" name="__codelineno-0-600"></a>    <span class="k">if</span> <span class="n">n_parallel_games</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-601" name="__codelineno-0-601"></a>        <span class="n">contributions</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">take_contributions</span><span class="p">(</span><span class="n">elements</span><span class="o">=</span><span class="n">elements</span><span class="p">,</span>
+<a id="__codelineno-0-602" name="__codelineno-0-602"></a>                                              <span class="n">complement_space</span><span class="o">=</span><span class="n">complement_space</span><span class="p">,</span>
+<a id="__codelineno-0-603" name="__codelineno-0-603"></a>                                              <span class="n">combination_space</span><span class="o">=</span><span class="n">combination_space</span><span class="p">,</span>
+<a id="__codelineno-0-604" name="__codelineno-0-604"></a>                                              <span class="n">objective_function</span><span class="o">=</span><span class="n">objective_function</span><span class="p">,</span>
+<a id="__codelineno-0-605" name="__codelineno-0-605"></a>                                              <span class="n">objective_function_params</span><span class="o">=</span><span class="n">objective_function_params</span><span class="p">,</span>
+<a id="__codelineno-0-606" name="__codelineno-0-606"></a>                                              <span class="n">mbar</span><span class="o">=</span><span class="n">mbar</span><span class="p">)</span>
+<a id="__codelineno-0-607" name="__codelineno-0-607"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-608" name="__codelineno-0-608"></a>        <span class="n">contributions</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parallelized_take_contributions</span><span class="p">(</span>
+<a id="__codelineno-0-609" name="__codelineno-0-609"></a>            <span class="n">multiprocessing_method</span><span class="o">=</span><span class="n">multiprocessing_method</span><span class="p">,</span>
+<a id="__codelineno-0-610" name="__codelineno-0-610"></a>            <span class="n">n_cores</span><span class="o">=</span><span class="n">n_parallel_games</span><span class="p">,</span>
+<a id="__codelineno-0-611" name="__codelineno-0-611"></a>            <span class="n">complement_space</span><span class="o">=</span><span class="n">complement_space</span><span class="p">,</span>
+<a id="__codelineno-0-612" name="__codelineno-0-612"></a>            <span class="n">combination_space</span><span class="o">=</span><span class="n">combination_space</span><span class="p">,</span>
+<a id="__codelineno-0-613" name="__codelineno-0-613"></a>            <span class="n">objective_function</span><span class="o">=</span><span class="n">objective_function</span><span class="p">,</span>
+<a id="__codelineno-0-614" name="__codelineno-0-614"></a>            <span class="n">objective_function_params</span><span class="o">=</span><span class="n">objective_function_params</span><span class="p">,</span>
+<a id="__codelineno-0-615" name="__codelineno-0-615"></a>            <span class="n">mbar</span><span class="o">=</span><span class="n">mbar</span><span class="p">)</span>
+<a id="__codelineno-0-616" name="__codelineno-0-616"></a>
+<a id="__codelineno-0-617" name="__codelineno-0-617"></a>    <span class="n">shapley_table</span> <span class="o">=</span> <span class="n">get_shapley_table</span><span class="p">(</span><span class="n">contributions</span><span class="o">=</span><span class="n">contributions</span><span class="p">,</span>
+<a id="__codelineno-0-618" name="__codelineno-0-618"></a>                                      <span class="n">permutation_space</span><span class="o">=</span><span class="n">permutation_space</span><span class="p">,</span>
+<a id="__codelineno-0-619" name="__codelineno-0-619"></a>                                      <span class="n">dual_progress_bars</span><span class="o">=</span><span class="n">dual_progress_bars</span><span class="p">,</span>
+<a id="__codelineno-0-620" name="__codelineno-0-620"></a>                                      <span class="n">save_permutations</span><span class="o">=</span><span class="n">save_permutations</span><span class="p">,</span>
+<a id="__codelineno-0-621" name="__codelineno-0-621"></a>                                      <span class="n">lesioned</span><span class="o">=</span><span class="n">lesioned</span><span class="p">,</span> <span class="n">mbar</span><span class="o">=</span><span class="n">mbar</span><span class="p">)[</span><span class="n">elements</span><span class="p">]</span>
+<a id="__codelineno-0-622" name="__codelineno-0-622"></a>    <span class="k">return</span> <span class="n">shapley_table</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      MIT License Copyright (c) 2021 <a href="https://kaysonfakhar.com/">Kayson</a>
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/kuffmode" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/kaysonfakhar" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.ad660dcc.min.js"></script>
+      
+    
+  </body>
+</html>
