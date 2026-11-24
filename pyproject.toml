@@ -1,10 +1,16 @@
 [project]
 name = "msapy"
-version = "1.7.3"
+version = "1.7.4"
 description = "Multi-perturbation Shapley value Analysis (MSA)"
 readme = "docs/README.md"
 license = { text = "OSI Approved :: MIT License" }
 requires-python = ">=3.11"
+classifiers = [
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
 
 authors = [
   { name = "Kayson Fakhar", email = "kayson.fakhar@gmail.com" },

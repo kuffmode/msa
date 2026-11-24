@@ -80,7 +80,7 @@ def test_estimate_causal_influence(n_cores, multiprocessing_method, parallelize_
                                                                  n_cores=n_cores)
 
     estimated_causal_influences = estimated_causal_influences.groupby(
-        level=0).mean().values
+        level=0).mean().to_numpy(copy=True)
     np.fill_diagonal(estimated_causal_influences, 0)
 
     assert np.allclose(estimated_causal_influences,
