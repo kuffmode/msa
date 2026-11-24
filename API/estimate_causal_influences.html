@@ -1,0 +1,1838 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A compact and general-purpose Python package for Multiperturbation Shapley value Analysis (MSA).">
+      
+      
+        <meta name="author" content="Kayson Fakhar">
+      
+      
+      
+        <link rel="prev" href="../Getting%20Started.html">
+      
+      
+        <link rel="next" href="get_shapley_table.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Estimate causal influences - MSA (Multi-perturbation Shapley value Analysis)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#msapy.msa.estimate_causal_influences" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="MSA (Multi-perturbation Shapley value Analysis)" class="md-header__button md-logo" aria-label="MSA (Multi-perturbation Shapley value Analysis)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MSA (Multi-perturbation Shapley value Analysis)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Estimate causal influences
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/kuffmode/msa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="MSA (Multi-perturbation Shapley value Analysis)" class="md-nav__button md-logo" aria-label="MSA (Multi-perturbation Shapley value Analysis)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MSA (Multi-perturbation Shapley value Analysis)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/kuffmode/msa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Getting%20Started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estimate causal influences
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="estimate_causal_influences.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estimate causal influences
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#msapy.msa.estimate_causal_influences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        estimate_causal_influences
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="get_shapley_table.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get shapley table
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="interface.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_combination_space.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Make combination space
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_complement_space.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Make complement space
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="make_permutation_space.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Make permutation space
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="network_interaction_2d.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Network interaction 2d
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="take_contributions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Take contributions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utils
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utils
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/bootstrap_hypothesis_testing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap hypothesis testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/distribution_of_processing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distribution of processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/parallelized_take_contributions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parallelized take contributions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Utils/sorter.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sorter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/MSA%20TimeSeries.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MSA TimeSeries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/Shapley%20GAN.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Work In Progress
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/brain%20modes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capturing contributions in different 'brain modes'
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/minimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal examples of how to use MSA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/mnist_torch.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mnist torch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/on%20ground-truth%20models.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working with groundtruth models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/shapley%20analysis.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Work In Progress
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#msapy.msa.estimate_causal_influences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        estimate_causal_influences
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Estimate causal influences</h1>
+
+<div class="doc doc-object doc-function">
+
+
+
+<a id="msapy.msa.estimate_causal_influences"></a>
+    <div class="doc doc-contents first">
+
+        <p>Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function
+performs MSA iteratively on each node and tracks the changes in the objective_function of the target node.
+For example we have a chain A -&gt; B -&gt; C, and we want to know how much A and B are contributing to C. We first need to
+define a metric for C (objective_function) which here let's say is the average activity of C. MSA then performs a
+multi-site lesioning analysis of A and B so for each we will end up with a number indicating their contributions to
+the average activity of C.</p>
+<p>VERY IMPORTANT NOTES:</p>
+<div class="highlight"><pre><span></span><code>1. The resulting causal contribution matrix does not necessarily reflect the connectome. In the example above
+there's no actual connection A -&gt; C but there might be one in the causal contribution matrix since A is causally
+influencing C via B.
+2. Think twice (even three times) about your objective function. The same everything will result in different
+causal contribution matrices depending on what are you tracking and how accurate it's capturing the effect of
+lesions. Also don't forget the edge-cases. There will be weird behaviors in your system, for example, what it
+does if every node is perturbed?
+3. The metric you track is preferred to be non-negative and bounded (at least practically!)
+4. Obviously this will take N times longer than a normal MSA with N is the number of nodes. So make sure your
+process is as fast as it can be for example use Numba and stuff, but you don't need to implement any parallel
+processes since it's already implemented here. Going below 1000 permutations might be an option depending on
+your specific case but based on experience, it's not a good idea 
+5. Shapley values sum up (or will be close) to the value of the intact coalition. So for example if the
+mean activity of node C here is 50 then causal_contribution_matrix.sum(axis=0) = 50 or close to 50. If not it
+means:
+    1. the number of permutations are not enough
+    2. there is randomness somewhere in the process
+    3. your objective function is not suitable
+</code></pre></div>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>elements</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of the players (elements). Can be strings (names), integers (indicies), and tuples.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>objective_function</code>
+            </td>
+            <td>
+                  <code><span title="typing.Callable">Callable</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The game (in-silico experiment). It should get the complement set and return one numeric value
+either int or float.
+This function is just calling it as: objective_function(complement, **objective_function_params)</p>
+<p>An example using networkx with some tips:</p>
+<p>def lesion_me_senpai(complements, network, index):
+    # note "index", your function should be able to track the effects on the target and the keyword for
+      that is "index"</p>
+<div class="highlight"><pre><span></span><code>if len(complements) == len(A)-1:  # -1 since the target node is active
+    return 0
+
+lesioned_network = deepcopy(network)
+for target in complements:
+    lesioned_network[target] = 0  # setting all connections of the targets to 0
+
+activity = network.run(lesioned_network) # or really, whatever you want!
+return float(activity[index].mean())
+</code></pre></div>
+<p>(you sometimes need to specify what should happen during edge-cases like an all-lesioned network)</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>objective_function_params</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Kwargs for the objective_function. A dictionary pair of {'index': index} will be added to this during
+the process so your function can track the lesion effect.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>target_elements</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="list">list</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>list of elements that you want to calculate the causal influence of.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>multiprocessing_method</code>
+            </td>
+            <td>
+                  <code>str = &#39;joblib&#39;</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.
+If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their
+documentations to see how to go for it.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;joblib&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>n_cores</code>
+            </td>
+            <td>
+                  <code>int = -1</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of parallel games. Default is -1, which means all cores so it can make the system
+freeze for a short period, if that happened then maybe go for -2, which means one msapy is
+left out. Or really just specify the number of threads you want to use!</p>
+              </div>
+            </td>
+            <td>
+                  <code>-1</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>n_permutations</code>
+            </td>
+            <td>
+                  <code>int = 1000</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of permutations per node.
+Didn't check it systematically yet but just based on random explorations
+I'd say something around 1000 is enough.</p>
+              </div>
+            </td>
+            <td>
+                  <code>1000</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>permutation_seed</code>
+            </td>
+            <td>
+                  <code>Optional[int] = None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Sets the random seed of the sampling process. Default is None so if nothing is given every call results in
+a different orderings.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>parallelize_over_games</code>
+            </td>
+            <td>
+                  <code>bool = False</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Whether to parallelize over games or parallelize over elements. Parallelizing
+over the elements is generally faster. Defaults to False</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>causal_influences (pd.DataFrame)</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>msapy/msa.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-879"> 879</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-880"> 880</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-881"> 881</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-882"> 882</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-883"> 883</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-884"> 884</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-885"> 885</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-886"> 886</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-887"> 887</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-888"> 888</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-889"> 889</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-890"> 890</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-891"> 891</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-892"> 892</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-893"> 893</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-894"> 894</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-895"> 895</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-896"> 896</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-897"> 897</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-898"> 898</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-899"> 899</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-900"> 900</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-901"> 901</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-902"> 902</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-903"> 903</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-904"> 904</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-905"> 905</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-906"> 906</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-907"> 907</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-908"> 908</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-909"> 909</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-910"> 910</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-911"> 911</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-912"> 912</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-913"> 913</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-914"> 914</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-915"> 915</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-916"> 916</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-917"> 917</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-918"> 918</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-919"> 919</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-920"> 920</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-921"> 921</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-922"> 922</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-923"> 923</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-924"> 924</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-925"> 925</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-926"> 926</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-927"> 927</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-928"> 928</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-929"> 929</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-930"> 930</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-931"> 931</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-932"> 932</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-933"> 933</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-934"> 934</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-935"> 935</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-936"> 936</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-937"> 937</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-938"> 938</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-939"> 939</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-940"> 940</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-941"> 941</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-942"> 942</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-943"> 943</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-944"> 944</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-945"> 945</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-946"> 946</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-947"> 947</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-948"> 948</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-949"> 949</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-950"> 950</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-951"> 951</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-952"> 952</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-953"> 953</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-954"> 954</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-955"> 955</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-956"> 956</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-957"> 957</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-958"> 958</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-959"> 959</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-960"> 960</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-961"> 961</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-962"> 962</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-963"> 963</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-964"> 964</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-965"> 965</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-966"> 966</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-967"> 967</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-968"> 968</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-969"> 969</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-970"> 970</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-971"> 971</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-972"> 972</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-973"> 973</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-974"> 974</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-975"> 975</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-976"> 976</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-977"> 977</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-978"> 978</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-979"> 979</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-980"> 980</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-981"> 981</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-982"> 982</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-983"> 983</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-984"> 984</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-985"> 985</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-986"> 986</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-987"> 987</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-988"> 988</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-989"> 989</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-990"> 990</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-991"> 991</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-992"> 992</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-993"> 993</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-994"> 994</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-995"> 995</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-996"> 996</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-997"> 997</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-998"> 998</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-999"> 999</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1000">1000</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1001">1001</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1002">1002</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1003">1003</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1004">1004</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1005">1005</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1006">1006</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1007">1007</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1008">1008</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1009">1009</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1010">1010</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1011">1011</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1012">1012</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1013">1013</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1014">1014</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1015">1015</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1016">1016</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1017">1017</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1018">1018</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1019">1019</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1020">1020</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1021">1021</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1022">1022</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1023">1023</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1024">1024</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1025">1025</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1026">1026</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1027">1027</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1028">1028</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1029">1029</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1030">1030</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1031">1031</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1032">1032</a></span>
+<span class="normal"><a href="#msapy.msa.estimate_causal_influences--source--__codelineno-0-1033">1033</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-879" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-879"></a><span class="nd">@typechecked</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-880" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-880"></a><span class="k">def</span><span class="w"> </span><span class="nf">estimate_causal_influences</span><span class="p">(</span><span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-881" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-881"></a>                               <span class="n">objective_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-882" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-882"></a>                               <span class="n">objective_function_params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-883" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-883"></a>                               <span class="n">target_elements</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-884" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-884"></a>                               <span class="n">multiprocessing_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'joblib'</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-885" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-885"></a>                               <span class="n">n_cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-886" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-886"></a>                               <span class="n">n_permutations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-887" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-887"></a>                               <span class="n">permutation_seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-888" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-888"></a>                               <span class="n">parallelize_over_games</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-889" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-889"></a>                               <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-890" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-890"></a>                               <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-891" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-891"></a><span class="w">    </span><span class="sd">"""</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-892" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-892"></a><span class="sd">    Estimates the causal contribution (Shapley values) of each node on the rest of the network. Basically, this function</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-893" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-893"></a><span class="sd">    performs MSA iteratively on each node and tracks the changes in the objective_function of the target node.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-894" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-894"></a><span class="sd">    For example we have a chain A -&gt; B -&gt; C, and we want to know how much A and B are contributing to C. We first need to</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-895" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-895"></a><span class="sd">    define a metric for C (objective_function) which here let's say is the average activity of C. MSA then performs a</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-896" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-896"></a><span class="sd">    multi-site lesioning analysis of A and B so for each we will end up with a number indicating their contributions to</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-897" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-897"></a><span class="sd">    the average activity of C.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-898" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-898"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-899" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-899"></a><span class="sd">    VERY IMPORTANT NOTES:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-900" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-900"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-901" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-901"></a><span class="sd">        1. The resulting causal contribution matrix does not necessarily reflect the connectome. In the example above</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-902" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-902"></a><span class="sd">        there's no actual connection A -&gt; C but there might be one in the causal contribution matrix since A is causally</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-903" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-903"></a><span class="sd">        influencing C via B.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-904" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-904"></a><span class="sd">        2. Think twice (even three times) about your objective function. The same everything will result in different</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-905" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-905"></a><span class="sd">        causal contribution matrices depending on what are you tracking and how accurate it's capturing the effect of</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-906" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-906"></a><span class="sd">        lesions. Also don't forget the edge-cases. There will be weird behaviors in your system, for example, what it</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-907" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-907"></a><span class="sd">        does if every node is perturbed?</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-908" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-908"></a><span class="sd">        3. The metric you track is preferred to be non-negative and bounded (at least practically!)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-909" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-909"></a><span class="sd">        4. Obviously this will take N times longer than a normal MSA with N is the number of nodes. So make sure your</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-910" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-910"></a><span class="sd">        process is as fast as it can be for example use Numba and stuff, but you don't need to implement any parallel</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-911" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-911"></a><span class="sd">        processes since it's already implemented here. Going below 1000 permutations might be an option depending on</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-912" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-912"></a><span class="sd">        your specific case but based on experience, it's not a good idea </span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-913" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-913"></a><span class="sd">        5. Shapley values sum up (or will be close) to the value of the intact coalition. So for example if the</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-914" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-914"></a><span class="sd">        mean activity of node C here is 50 then causal_contribution_matrix.sum(axis=0) = 50 or close to 50. If not it</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-915" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-915"></a><span class="sd">        means:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-916" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-916"></a><span class="sd">            1. the number of permutations are not enough</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-917" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-917"></a><span class="sd">            2. there is randomness somewhere in the process</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-918" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-918"></a><span class="sd">            3. your objective function is not suitable</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-919" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-919"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-920" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-920"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-921" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-921"></a><span class="sd">    Args:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-922" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-922"></a><span class="sd">        elements (list):</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-923" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-923"></a><span class="sd">            List of the players (elements). Can be strings (names), integers (indicies), and tuples.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-924" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-924"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-925" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-925"></a><span class="sd">        objective_function (Callable):</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-926" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-926"></a><span class="sd">            The game (in-silico experiment). It should get the complement set and return one numeric value</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-927" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-927"></a><span class="sd">            either int or float.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-928" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-928"></a><span class="sd">            This function is just calling it as: objective_function(complement, **objective_function_params)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-929" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-929"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-930" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-930"></a><span class="sd">            An example using networkx with some tips:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-931" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-931"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-932" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-932"></a><span class="sd">            def lesion_me_senpai(complements, network, index):</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-933" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-933"></a><span class="sd">                # note "index", your function should be able to track the effects on the target and the keyword for</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-934" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-934"></a><span class="sd">                  that is "index"</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-935" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-935"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-936" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-936"></a><span class="sd">                if len(complements) == len(A)-1:  # -1 since the target node is active</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-937" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-937"></a><span class="sd">                    return 0</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-938" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-938"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-939" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-939"></a><span class="sd">                lesioned_network = deepcopy(network)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-940" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-940"></a><span class="sd">                for target in complements:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-941" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-941"></a><span class="sd">                    lesioned_network[target] = 0  # setting all connections of the targets to 0</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-942" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-942"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-943" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-943"></a><span class="sd">                activity = network.run(lesioned_network) # or really, whatever you want!</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-944" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-944"></a><span class="sd">                return float(activity[index].mean())</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-945" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-945"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-946" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-946"></a><span class="sd">            (you sometimes need to specify what should happen during edge-cases like an all-lesioned network)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-947" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-947"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-948" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-948"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-949" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-949"></a><span class="sd">        objective_function_params (Optional[Dict]):</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-950" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-950"></a><span class="sd">            Kwargs for the objective_function. A dictionary pair of {'index': index} will be added to this during</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-951" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-951"></a><span class="sd">            the process so your function can track the lesion effect.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-952" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-952"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-953" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-953"></a><span class="sd">        target_elements (Optional[list]): list of elements that you want to calculate the causal influence of.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-954" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-954"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-955" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-955"></a><span class="sd">        multiprocessing_method (str = 'joblib'):</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-956" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-956"></a><span class="sd">            So far, two methods of parallelization is implemented, 'joblib' and 'ray' and the default method is joblib.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-957" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-957"></a><span class="sd">            If using ray tho, you need to decorate your objective function with @ray.remote decorator. Visit their</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-958" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-958"></a><span class="sd">            documentations to see how to go for it.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-959" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-959"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-960" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-960"></a><span class="sd">        n_cores (int = -1):</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-961" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-961"></a><span class="sd">            Number of parallel games. Default is -1, which means all cores so it can make the system</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-962" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-962"></a><span class="sd">            freeze for a short period, if that happened then maybe go for -2, which means one msapy is</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-963" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-963"></a><span class="sd">            left out. Or really just specify the number of threads you want to use!</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-964" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-964"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-965" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-965"></a><span class="sd">        n_permutations (int = 1000):</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-966" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-966"></a><span class="sd">            Number of permutations per node.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-967" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-967"></a><span class="sd">            Didn't check it systematically yet but just based on random explorations</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-968" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-968"></a><span class="sd">            I'd say something around 1000 is enough.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-969" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-969"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-970" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-970"></a><span class="sd">        permutation_seed (Optional[int] = None):</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-971" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-971"></a><span class="sd">            Sets the random seed of the sampling process. Default is None so if nothing is given every call results in</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-972" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-972"></a><span class="sd">            a different orderings.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-973" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-973"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-974" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-974"></a><span class="sd">        parallelize_over_games (bool = False): Whether to parallelize over games or parallelize over elements. Parallelizing</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-975" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-975"></a><span class="sd">            over the elements is generally faster. Defaults to False</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-976" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-976"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-977" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-977"></a><span class="sd">    Returns:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-978" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-978"></a><span class="sd">        causal_influences (pd.DataFrame)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-979" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-979"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-980" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-980"></a><span class="sd">    """</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-981" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-981"></a>    <span class="n">target_elements</span> <span class="o">=</span> <span class="n">target_elements</span> <span class="k">if</span> <span class="n">target_elements</span> <span class="k">else</span> <span class="n">elements</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-982" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-982"></a>    <span class="n">objective_function_params</span> <span class="o">=</span> <span class="n">objective_function_params</span> <span class="k">if</span> <span class="n">objective_function_params</span> <span class="k">else</span> <span class="p">{}</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-983" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-983"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-984" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-984"></a>    <span class="k">if</span> <span class="n">parallelize_over_games</span><span class="p">:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-985" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-985"></a>        <span class="c1"># run causal_influence_single_element for all target elements.</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-986" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-986"></a>        <span class="n">mbar</span> <span class="o">=</span> <span class="n">master_bar</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">target_elements</span><span class="p">),</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-987" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-987"></a>                          <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">target_elements</span><span class="p">))</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-988" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-988"></a>        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">causal_influence_single_element</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-989" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-989"></a>                                                   <span class="n">objective_function_params</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-990" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-990"></a>                                                   <span class="n">n_cores</span><span class="p">,</span> <span class="n">multiprocessing_method</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-991" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-991"></a>                                                   <span class="n">permutation_seed</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">lazy</span><span class="p">,</span> <span class="n">mbar</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">mbar</span><span class="p">]</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-992" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-992"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-993" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-993"></a>    <span class="k">elif</span> <span class="n">multiprocessing_method</span> <span class="o">==</span> <span class="s1">'ray'</span><span class="p">:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-994" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-994"></a>        <span class="k">if</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="s2">"ray"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-995" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-995"></a>            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-996" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-996"></a>                <span class="s2">"The ray package is required to run this algorithm. Install and use at your own risk."</span><span class="p">)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-997" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-997"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-998" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-998"></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">ray</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-999" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-999"></a>        <span class="k">if</span> <span class="n">n_cores</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1000" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1000"></a>            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"A zero or a negative n_cores was passed and ray doesn't like so "</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1001" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1001"></a>                          <span class="s2">"to fix that ray.init() will get no arguments, "</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1002" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1002"></a>                          <span class="s2">"which means use all cores as n_cores = -1 does for joblib."</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1003" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1003"></a>            <span class="n">ray</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1004" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1004"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1005" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1005"></a>            <span class="n">ray</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">num_cpus</span><span class="o">=</span><span class="n">n_cores</span><span class="p">)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1006" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1006"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1007" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1007"></a>        <span class="n">result_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">ray</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">causal_influence_single_element</span><span class="p">)</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1008" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1008"></a>                                                                         <span class="n">objective_function_params</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1009" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1009"></a>                                                                         <span class="mi">1</span><span class="p">,</span> <span class="s1">'joblib'</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1010" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1010"></a>                                                                         <span class="n">permutation_seed</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">lazy</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">target_elements</span><span class="p">)]</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1011" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1011"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1012" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1012"></a>        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ray_iterator</span><span class="p">(</span><span class="n">result_ids</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">result_ids</span><span class="p">)):</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1013" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1013"></a>            <span class="k">pass</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1014" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1014"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1015" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1015"></a>        <span class="n">results</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">result_ids</span><span class="p">)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1016" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1016"></a>        <span class="n">ray</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1017" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1017"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1018" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1018"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1019" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1019"></a>        <span class="k">with</span> <span class="n">tqdm_joblib</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s2">"Doing Nodes: "</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">target_elements</span><span class="p">))</span> <span class="k">as</span> <span class="n">pb</span><span class="p">:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1020" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1020"></a>            <span class="n">results</span> <span class="o">=</span> <span class="p">(</span><span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="n">n_cores</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">causal_influence_single_element</span><span class="p">)(</span><span class="n">elements</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1021" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1021"></a>                                                                                         <span class="n">objective_function_params</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1022" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1022"></a>                                                                                         <span class="mi">1</span><span class="p">,</span> <span class="s1">'joblib'</span><span class="p">,</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1023" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1023"></a>                                                                                         <span class="n">permutation_seed</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">lazy</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">target_elements</span><span class="p">)))</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1024" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1024"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1025" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1025"></a>    <span class="n">_</span><span class="p">,</span> <span class="n">contribution_type</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1026" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1026"></a>    <span class="n">shapley_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1027" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1027"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1028" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1028"></a>    <span class="n">causal_influences</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1029" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1029"></a>        <span class="n">shapley_values</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">elements</span><span class="p">)</span> <span class="k">if</span> <span class="n">contribution_type</span> <span class="o">==</span> <span class="s2">"scaler"</span> <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">shapley_values</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="n">elements</span><span class="p">)</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1030" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1030"></a>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1031" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1031"></a>    <span class="k">if</span> <span class="n">contribution_type</span> <span class="o">==</span> <span class="s2">"scaler"</span><span class="p">:</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1032" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1032"></a>        <span class="k">return</span> <span class="n">causal_influences</span>
+<a id="msapy.msa.estimate_causal_influences--source--__codelineno-0-1033" name="msapy.msa.estimate_causal_influences--source--__codelineno-0-1033"></a>    <span class="k">return</span> <span class="n">causal_influences</span><span class="p">[</span><span class="n">causal_influences</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      MIT License Copyright (c) 2021 <a href="https://kaysonfakhar.com/">Kayson</a>
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/kuffmode" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/kaysonfakhar" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  <script data-mkdocs-jupyter-mathjax="{&quot;url&quot;: &quot;https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js&quot;, &quot;version&quot;: 4}">
+/* Shared by full pages and Material's instant navigation. */
+(() => {
+  const config = JSON.parse(document.currentScript.dataset.mkdocsJupyterMathjax);
+  if (window.mkdocsJupyterMathJax) return;
+
+  let loading;
+  let queue = Promise.resolve();
+  let previous = [];
+
+  const ready = async () => {
+    if (!loading) {
+      loading = (async () => {
+        let math = window.MathJax;
+        if (!math?.typesetPromise) {
+          const url = new URL(config.url, document.baseURI).href;
+          const existing = Array.from(document.scripts).find(script =>
+            script.src && (script.src === url || script.id === 'MathJax-script' ||
+              (/mathjax/i.test(script.src) &&
+               /\/(?:MathJax|latest|(?:tex|mml)(?:-mml)?-(?:chtml|svg))\.js(?:[?#]|$)/i.test(script.src))));
+          if (existing) {
+            if (!math?.startup?.promise) {
+              await new Promise((resolve, reject) => {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+              });
+            }
+          } else {
+            // Keep site macros, delimiters and startup hooks when supplied.
+            const options = math || {};
+            window.MathJax = {
+              ...options,
+              loader: {
+                ...options.loader,
+                load: Array.from(new Set(['ui/safe', ...(options.loader?.load || [])]))
+              },
+              startup: { typeset: false, ...options.startup },
+              tex: {
+                tags: 'ams',
+                useLabelIds: true,
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true,
+                ...options.tex
+              }
+            };
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = config.url;
+              script.id = 'MathJax-script';
+              script.async = true;
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+          }
+        }
+        math = window.MathJax;
+        await math.startup.promise;
+        return math;
+      })();
+    }
+    const math = await loading;
+    // A site owner can extend the v3 queue again on each navigation.
+    await math.startup.promise;
+    return math;
+  };
+
+  const unrendered = node => {
+    if (node.matches('mjx-container')) return [];
+    if (!node.querySelector('mjx-container')) return [node];
+    // In v3, scanning generated assistive MathML again produces nested output.
+    return Array.from(node.children).flatMap(unrendered);
+  };
+
+  const refresh = () => {
+    // A separate chain also serializes v3, without changing v4's startup promise.
+    queue = queue.then(async () => {
+      const notebooks = Array.from(document.querySelectorAll('.jupyter-wrapper'));
+      if (!notebooks.length && !previous.length) return;
+      if (notebooks.length === previous.length &&
+          notebooks.every((node, index) => node === previous[index])) return;
+      const math = await ready();
+      if (previous.length) {
+        math.typesetClear(previous);
+        math.texReset();
+      }
+      previous = notebooks.filter(node => node.isConnected);
+      const pending = previous.flatMap(unrendered);
+      if (pending.length) await math.typesetPromise(pending);
+    }).catch(error => console.error('mkdocs-jupyter: MathJax rendering failed', error));
+    return queue;
+  };
+
+  window.mkdocsJupyterMathJax = { refresh };
+  const start = () => {
+    if (typeof document$ !== 'undefined') document$.subscribe(refresh);
+    else refresh();
+  };
+  // Theme bundles and user-provided MathJax scripts can follow notebook content.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else start();
+})();
+
+</script>
+</body>
+</html>
