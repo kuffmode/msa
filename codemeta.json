@@ -6,13 +6,13 @@
     "dateCreated": "2021-10-28",
     "datePublished": "2021-11-01",
     "dateModified": "2023-11-23",
-    "downloadUrl": "https://github.com/kuffmode/msa/archive/refs/tags/v1.5.tar.gz",
+    "downloadUrl": "https://github.com/kuffmode/msa/archive/refs/tags/v1.7.4.tar.gz",
     "issueTracker": "https://github.com/kuffmode/msa/issues",
     "name": "MSA",
-    "version": "1.5",
+    "version": "1.7.4",
     "description": "A compact and general-purpose Python package for Multi-perturbation Shapley value Analysis",
     "applicationCategory": "Computational Neuroscience",
-    "releaseNotes": "Performance optimized. Works with Python 3.11",
+    "releaseNotes": "Performance optimized. Works with Python 3.11-3.14",
     "referencePublication": "https://doi.org/10.1371/journal.pcbi.1010250",
     "funder": {
         "@type": "Organization",
@@ -34,7 +34,7 @@
         "MacOs"
     ],
     "softwareRequirements": [
-        "Python 3.9",
+        "Python >=3.11",
         "https://github.com/kuffmode/msa/blob/main/pyproject.toml"
     ],
     "relatedLink": [

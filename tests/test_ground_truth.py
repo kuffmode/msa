@@ -86,7 +86,7 @@ def test_estimate_causal_influence(n_cores, multiprocessing_method, parallelize_
                                                                   objective_function=objective_function_causal_influence,
                                                                   multiprocessing_method=multiprocessing_method,
                                                                   parallelize_over_games=parallelize_over_games,
-                                                                  n_cores=n_cores).values
+                                                                  n_cores=n_cores).to_numpy(copy=True)
 
     np.fill_diagonal(calculated_causal_influences, 0)
 
